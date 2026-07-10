@@ -2,12 +2,11 @@ require("dotenv").config();
 const axios = require("axios");
 
 // ================= CONFIG =================
-const BOT_TOKEN = "5250315160:AAE9mQUY2rvqR3nDo45QZSqZ3rVvkqZIiug";
-const OWNER_ID = "8443013313";
-
-if (!BOT_TOKEN || !OWNER_ID) {
-  console.error("❌ [Monitor] BOT_TOKEN или OWNER_ID не заданы в .env");
-}
+// Раньше токен и ID владельца были захардкожены прямо в коде (и утекли в публичный
+// репозиторий). Теперь оба обязаны приходить из .env — без них монитор не запустится.
+const BOT_TOKEN = process.env.MONITOR_BOT_TOKEN;
+const OWNER_ID = process.env.MONITOR_OWNER_ID;
+const MONITOR_ENABLED = process.env.MONITOR_ENABLED === "true";
 
 const BASE_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
@@ -970,7 +969,23 @@ function startScheduler() {
 }
 
 // ================= MAIN EXPORT =================
+// Отключён по умолчанию (MONITOR_ENABLED != "true"): этот модуль архивирует и
+// пересылает владельцу ВСЕ сообщения из чатов, где состоит бот с MONITOR_BOT_TOKEN
+// (текст, фото, видео, локации, контакты). Включать осознанно, только если
+// участники соответствующих чатов знают о таком мониторинге.
 async function startMessageMonitor() {
+  if (!MONITOR_ENABLED) {
+    console.log(
+      "⏸️ [Monitor] Отключён (MONITOR_ENABLED != 'true') — не запускаю",
+    );
+    return;
+  }
+  if (!BOT_TOKEN || !OWNER_ID) {
+    console.error(
+      "❌ [Monitor] MONITOR_BOT_TOKEN или MONITOR_OWNER_ID не заданы в .env — не запускаю",
+    );
+    return;
+  }
   if (isRunning) {
     console.log("⚠️ [Monitor] Уже запущен");
     return;
