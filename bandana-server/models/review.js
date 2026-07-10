@@ -1,0 +1,102 @@
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
+
+const Review = sequelize.define(
+  "MasterClassReview",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    author_name: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      validate: {
+        len: [2, 50],
+        notEmpty: true,
+      },
+    },
+    master_class_id: {
+      type: DataTypes.UUID,
+      allowNull: true, // ← Меняем на true, чтобы отзывы не удалялись при удалении МК
+    },
+    // ========== НОВЫЕ ПОЛЯ ДЛЯ ХРАНЕНИЯ КОПИИ ДАННЫХ МК ==========
+    master_class_name: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "Название мастер-класса на момент создания отзыва",
+    },
+    master_class_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Дата мастер-класса на момент создания отзыва",
+    },
+    // ============================================================
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+        max: 5,
+        isInt: true,
+      },
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [1, 2000],
+      },
+    },
+    status: {
+      type: DataTypes.ENUM("pending", "approved", "rejected", "blocked"),
+      defaultValue: "pending",
+      allowNull: false,
+    },
+    rejection_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    cookie_id: {
+      type: DataTypes.STRING(36),
+      allowNull: true,
+    },
+    ip_address: {
+      type: DataTypes.STRING(45),
+      allowNull: true,
+    },
+    user_agent: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    is_blocked: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
+    blocked_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    blocked_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    submitted_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      allowNull: false,
+    },
+    reviewed_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    tableName: "MasterClassReviews",
+  },
+);
+
+module.exports = Review;

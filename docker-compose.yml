@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bandana-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bandana
+      POSTGRES_USER: bandana
+      POSTGRES_PASSWORD: bandana
+    ports:
+      - "55432:5432"
+    volumes:
+      - bandana_pg_data:/var/lib/postgresql/data
+
+volumes:
+  bandana_pg_data:
