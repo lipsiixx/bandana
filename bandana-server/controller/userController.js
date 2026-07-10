@@ -9,6 +9,7 @@ const Video = require("../models/video");
 const Teams = require("../models/teams");
 const Review = require("../models/review");
 const MasterClasses = require("../models/master_classes");
+const Notification = require("../models/notification");
 
 const BASE_URL = process.env.PUBLIC_URL;
 
@@ -682,6 +683,76 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
       res
         .status(500)
         .json({ success: false, message: "Ошибка обновления куки" });
+    }
+  }
+
+  // Уведомление посетителя (вызывается ботом при модерации отзыва)
+  async notifyUser(req, res) {
+    try {
+      const { cookie_id, message, type } = req.body;
+
+      if (!cookie_id || !message) {
+        return res.status(400).json({
+          success: false,
+          message: "Не указан cookie_id или message",
+        });
+      }
+
+      await Notification.create({ cookie_id, message, type: type || null });
+
+      res.json({ success: true, message: "Уведомление сохранено" });
+    } catch (error) {
+      console.error("Notify user error:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Ошибка сохранения уведомления" });
+    }
+  }
+
+  // Получить непрочитанные уведомления текущего посетителя (по подписанной куке)
+  async getNotifications(req, res) {
+    try {
+      const crypto = require("crypto");
+      const COOKIE_SECRET =
+        process.env.COOKIE_SECRET || "my-super-secret-key-change-it";
+
+      const signedCookie = req.cookies?.visitor_id;
+      if (!signedCookie) {
+        return res.json({ success: true, data: [] });
+      }
+
+      const lastDotIndex = signedCookie.lastIndexOf(".");
+      if (lastDotIndex === -1) {
+        return res.json({ success: true, data: [] });
+      }
+      const cookieId = signedCookie.substring(0, lastDotIndex);
+      const signature = signedCookie.substring(lastDotIndex + 1);
+      const expectedSignature = crypto
+        .createHmac("sha256", COOKIE_SECRET)
+        .update(cookieId)
+        .digest("hex");
+      if (signature !== expectedSignature) {
+        return res.json({ success: true, data: [] });
+      }
+
+      const notifications = await Notification.findAll({
+        where: { cookie_id: cookieId, is_read: false },
+        order: [["createdAt", "ASC"]],
+      });
+
+      if (notifications.length > 0) {
+        await Notification.update(
+          { is_read: true },
+          { where: { id: notifications.map((n) => n.id) } },
+        );
+      }
+
+      res.json({ success: true, data: notifications });
+    } catch (error) {
+      console.error("Get notifications error:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Ошибка получения уведомлений" });
     }
   }
 }

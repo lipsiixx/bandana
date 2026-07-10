@@ -17,6 +17,7 @@ const Gallery = require("./models/gallery");
 const Video = require("./models/video");
 const Teams = require("./models/teams");
 const Review = require("./models/review");
+const Notification = require("./models/notification");
 
 // Импортируем остальные зависимости
 const { startMessageMonitor } = require("./bot/utils/messageMonitor");
@@ -194,6 +195,9 @@ async function start() {
 
     await Teams.sync({ alter: true });
     console.log("✅ Teams table ready");
+
+    await Notification.sync({ alter: true });
+    console.log("✅ Notifications table ready");
 
     // Добавляем недостающие колонки
     await addMissingColumns();

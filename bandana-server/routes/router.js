@@ -31,6 +31,10 @@ router.get(
 
 router.get("/refresh-cookie", UserController.refreshCookie);
 
+// УВЕДОМЛЕНИЯ
+router.post("/notify-user", UserController.notifyUser);
+router.get("/notifications", UserController.getNotifications);
+
 router.post("/admin/block-user/:reviewId", UserController.blockUser);
 router.post("/admin/unblock-user/:cookieId", UserController.unblockUser);
 

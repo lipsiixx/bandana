@@ -232,6 +232,17 @@ class ApiService {
       return { success: false };
     }
   }
+
+  // Уведомления об одобрении/отклонении/блокировке отзыва (для текущего посетителя)
+  async getNotifications() {
+    try {
+      const response = await api.get("/api/notifications");
+      return response.data;
+    } catch (err) {
+      console.warn("Уведомления недоступны:", err.message);
+      return { success: false, data: [] };
+    }
+  }
 }
 
 export default new ApiService();
