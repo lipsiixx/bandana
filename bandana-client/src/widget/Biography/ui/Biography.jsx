@@ -8,48 +8,41 @@ const Biography = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <section className={styles.biographySection} id="biography">
-      <Title text="БИОГРАФИЯ" />
+    <section className={styles.biographySection}>
+      <div className={styles.inner}>
+        <Title text="О Марке" overline="Биография" />
 
-      <div className={styles.contentContainer}>
-        <div className={styles.imageBlock}>
-          <h1>BANDANA</h1>
-          <p>Professional Dancer</p>
-        </div>
+        <div className={styles.grid}>
+          <div className={styles.imageBlock}>
+            <div className={styles.imageCaption}>
+              <span className={styles.imageName}>BANDANA</span>
+              <span className={styles.imageRole}>Professional Dancer</span>
+            </div>
+          </div>
 
-        <div className={styles.textBlock}>
-          <div
-            style={{ marginLeft: !isExpanded ? "6.8vw" : "10vw" }}
-            className={styles.textWrapper}
-          >
-            <header className={styles.header}>
-              <h1>МАРК АЛЕКСЕЕВИЧ ШЕКУНОВ</h1>
-              <p>aka BANDANA</p>
-            </header>
+          <div className={styles.textBlock}>
+            <h3 className={styles.name}>Марк Алексеевич Шекунов</h3>
+            <p className={styles.aka}>aka BANDANA</p>
 
             <p className={styles.shortBio}>
               Марк Алексеевич Шекунов, более известный в танцевальных кругах как{" "}
-              <span className={styles.highlight}>BANDANA</span>, – яркий
-              представитель современной российской танцевальной сцены.
-            </p>
-
-            <p className={styles.shortBio}>
-              Его биография – это история неустанного труда, страсти к движению
-              и стремления к совершенству.
+              <span className={styles.highlight}>BANDANA</span>, — яркий
+              представитель современной российской танцевальной сцены. Его путь
+              — это история труда, страсти к движению и стремления к
+              совершенству.
             </p>
 
             <ExpandableText open={isExpanded} />
 
             <RollerogramButton
               onClick={() => setIsExpanded((prev) => !prev)}
-              text={isExpanded ? "СВЕРНУТЬ" : "ЧИТАТЬ ПОЛНОСТЬЮ"}
+              text={isExpanded ? "Свернуть" : "Читать полностью"}
               className={isExpanded ? "collapseButton" : "expandButton"}
             />
 
             <footer className={styles.footer}>
-              <div className={styles.footerLine}></div>
-              <p>PROFESSIONAL DANCER & CHOREOGRAPHER</p>
-              <div className={styles.footerLine}></div>
+              <span className={styles.footerLine} />
+              <p>Professional dancer &amp; choreographer</p>
             </footer>
           </div>
         </div>

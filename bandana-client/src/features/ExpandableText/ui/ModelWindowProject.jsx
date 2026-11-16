@@ -9,25 +9,35 @@ const ModelWindowProject = observer(() => {
 
   useEffect(() => {
     if (windowStore.open) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setOpacity(1);
       }, 500);
+      return () => clearTimeout(timer);
     } else {
       setOpacity(0);
     }
+    // windowStore.open — observable MobX: компонент обёрнут в observer и
+    // перерендеривается при его изменении, поэтому эффект корректно
+    // перезапускается. Правило exhaustive-deps этого не распознаёт.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowStore.open]);
 
   if (windowStore.open) {
     return (
-      <div className={style.background}>
+      <div
+        className={style.background}
+        onClick={() => windowStore.setOpenWindow(false)}
+      >
         <div
-          style={{ opacity: opacity, transition: "all 1s" }}
+          style={{ opacity: opacity }}
           className={style.window}
+          onClick={(e) => e.stopPropagation()}
         >
           <header className={style.header_window}>
             <button
               className={style.crest}
               onClick={() => windowStore.setOpenWindow(false)}
+              aria-label="Закрыть"
             >
               ✕
             </button>

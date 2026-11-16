@@ -26,6 +26,7 @@ class ApiService {
       );
       return {
         success: false,
+        error: true,
         data: [],
         message: "Сервер временно недоступен. Попробуйте позже.",
       };
@@ -36,11 +37,15 @@ class ApiService {
   async getGalleryFilters() {
     try {
       const response = await api.get("/api/gallery-filters");
-      console.log(response);
       return response.data;
     } catch (err) {
       console.warn("Фильтры галереи не загрузились:", err.message);
-      return { success: true, data: ["Все"] };
+      return {
+        success: true,
+        error: true,
+        data: ["Все"],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -50,7 +55,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Галерея недоступна:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -61,7 +71,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Команда недоступна:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -72,7 +87,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Видео недоступны:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -96,7 +116,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Мастер-классы недоступны:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -107,7 +132,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Мастер-класс не найден:", err.message);
-      return { success: false, data: null };
+      return {
+        success: false,
+        error: true,
+        data: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -123,7 +153,13 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Отзывы мастер-класса недоступны:", err.message);
-      return { success: false, data: [], pagination: null };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        pagination: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -156,7 +192,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Отзывы мастер-класса недоступны:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 
@@ -190,35 +231,12 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Отзывы недоступны:", err.message);
-      return { success: false, data: [], pagination: null };
-    }
-  }
-
-  async blockUser(reviewId, reason) {
-    try {
-      const response = await api.post(`/api/admin/block-user/${reviewId}`, {
-        reason,
-      });
-      return response.data;
-    } catch (err) {
-      console.warn("Ошибка блокировки пользователя:", err.message);
       return {
         success: false,
-        message: err.response?.data?.message || "Ошибка блокировки",
-      };
-    }
-  }
-
-  // Разблокировка пользователя (только для админов)
-  async unblockUser(cookieId) {
-    try {
-      const response = await api.post(`/api/admin/unblock-user/${cookieId}`);
-      return response.data;
-    } catch (err) {
-      console.warn("Ошибка разблокировки пользователя:", err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "Ошибка разблокировки",
+        error: true,
+        data: [],
+        pagination: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
       };
     }
   }
@@ -240,9 +258,15 @@ class ApiService {
       return response.data;
     } catch (err) {
       console.warn("Уведомления недоступны:", err.message);
-      return { success: false, data: [] };
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
     }
   }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;

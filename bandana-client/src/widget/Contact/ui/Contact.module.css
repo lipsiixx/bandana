@@ -1,19 +1,25 @@
 .contact {
+  padding-block: var(--sp-16) var(--sp-24);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--pad-inline);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  margin-top: 50vw;
-  margin-bottom: 10vw;
 }
 
 .buttons {
+  margin-top: var(--sp-8);
   display: flex;
-  margin-top: 7.8125vw;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-4);
 }
 
 @media (max-width: 600px) {
-  .buttons {
-    flex-direction: column;
-  }
+  .buttons { flex-direction: column; width: 100%; max-width: 360px; }
 }

@@ -1,47 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import style from "./EmptyEvent.module.css";
 
-const EmptyEvent = () => {
-  const [shaking, setShaking] = useState(false);
-  const [highlighted, setHighlighted] = useState(false);
+const TG_LINK = "https://t.me/dancerinbandana";
 
-  useEffect(() => {
-    if (highlighted) {
-      const timer = setTimeout(() => {
-        setHighlighted(false);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [highlighted]);
-
-  const handleClick = () => {
-    if (shaking || highlighted) return;
-
-    setShaking(true);
-    setHighlighted(false);
-  };
-
-  const handleAnimationEnd = () => {
-    if (shaking) {
-      setShaking(false);
-      setHighlighted(true);
-    }
-  };
-
+const EmptyEvent = ({
+  title = "Пока нет ближайших событий",
+  text = "Первыми о новых датах и наборах рассказываем в Telegram-канале.",
+  tgLink = TG_LINK,
+}) => {
   return (
-    <div
-      className={`${style.card} ${shaking ? style.shake : ""}`}
-      onClick={handleClick}
-      onAnimationEnd={handleAnimationEnd}
-    >
-      <div className={style.front}>
-        <p
-          className={`${style.nullInfo} ${highlighted ? style.highlighted : ""}`}
-        >
-          Скоро информация дойдет и до сюда
-        </p>
+    <div className={style.plashka}>
+      <div className={style.icon} aria-hidden="true">📣</div>
+      <div className={style.copy}>
+        <p className={style.title}>{title}</p>
+        <p className={style.text}>{text}</p>
       </div>
+      <a
+        href={tgLink}
+        className={style.btn}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Подписаться на канал
+      </a>
     </div>
   );
 };

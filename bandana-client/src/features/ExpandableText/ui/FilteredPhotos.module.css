@@ -1,153 +1,173 @@
-@font-face {
-  font-family: "RussoOne";
-  src: url("../../../shared/fonts/RussoOne.ttf");
-}
-
 .photo_section {
-  padding: 20px;
-  color: #fff;
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--sp-6) var(--pad-inline) var(--sp-16);
+  color: var(--text);
   position: relative;
 }
 
-.selectWrapper {
-  margin-bottom: 20px;
+/* Чипы-фильтры */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-8);
 }
 
+.chip,
+.chipOn {
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.chip {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--line);
+}
+
+.chip:hover { border-color: var(--accent); color: var(--text); }
+
+.chipOn {
+  background: var(--text);
+  color: var(--bg);
+  border: 1px solid var(--text);
+}
+
+/* Хронологические группы */
+.group { margin-bottom: var(--sp-8); }
+
+.groupTitle {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 700;
+  font-family: var(--font-text);
+  margin: 0 0 var(--sp-4);
+}
+
+/* Построчная раскладка: порядок = хронология, без прыжков масонри.
+   Пока у API нет width/height — фикс. плитка 4:5 c object-fit: cover. */
 .gallery {
-  column-count: 4;
-  column-gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+.tile {
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  overflow: hidden;
+  background: var(--surface-1);
+  cursor: pointer;
+  aspect-ratio: 4 / 5;
+  transition: transform var(--dur-fast) var(--ease-out-expo),
+    box-shadow var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.tile:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+  border-color: rgba(124, 92, 255, 0.5);
 }
 
 .photo {
   width: 100%;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  break-inside: avoid;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.photo:hover {
-  transform: scale(1.05);
-}
-
-/* ---------- МОДАЛЬНОЕ ОКНО ---------- */
+/* Лайтбокс */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 10, 15, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  padding: var(--sp-6);
+  animation: fadeIn var(--dur-mid) ease;
 }
 
 .modalContent {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 90%;
-  max-height: 80%;
+  max-width: min(1000px, 92vw);
+  max-height: 82vh;
 }
 
 .modalImage {
   width: 100%;
   height: auto;
-  max-height: 80vh;
-  border-radius: 10px;
+  max-height: 82vh;
+  border-radius: var(--r-card);
   object-fit: contain;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .closeButton {
   position: absolute;
-  top: 0.5vw;
-  right: 1vw;
-  border: none;
-  background: none;
-  color: #fff;
-  font-size: min(13.36898vw, 6.15764vh);
-  border-radius: 50%;
-  width: 2.6738vw;
-  height: 2.6738vw;
+  top: -14px;
+  right: -14px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1;
+  border-radius: var(--r-pill);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
   cursor: pointer;
+  transition: border-color var(--dur-fast) ease;
 }
+.closeButton:hover { border-color: var(--accent); }
 
-/* ---------- ФУТЕР ---------- */
 .footer_window_photo {
-  margin-top: 20px;
-  color: #b89aff;
+  margin-top: var(--sp-4);
+  color: var(--text-2);
   text-align: center;
-  font-family: "RussoOne", sans-serif;
-  font-size: 18px;
-  letter-spacing: 0.5px;
+  font-size: 1rem;
 }
 
+.noPhotos {
+  color: var(--text-2);
+  padding: var(--sp-8);
+  text-align: center;
+}
+
+/* Скелетоны */
 .skeleton {
-  background: #eee;
-  background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-  border-radius: 8px;
-  background-size: 200% 100%;
-  animation: 1.5s shine linear infinite;
+  border-radius: var(--r-control);
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 5;
+  background: linear-gradient(100deg, var(--surface-1) 30%, var(--surface-2) 50%, var(--surface-1) 70%);
+  background-size: 200% 100%;
+  animation: shine 1.4s linear infinite;
 }
 
-@keyframes shine {
-  to {
-    background-position-x: -200%;
-  }
-}
+@keyframes shine { to { background-position-x: -200%; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ---------- АНИМАЦИЯ ---------- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
+@media (max-width: 1200px) { .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); } }
 
-/* ---------- АДАПТИВ ---------- */
-@media (max-width: 1200px) {
-  .gallery {
-    column-count: 3;
-  }
-}
-
-@media (max-width: 900px) {
-  .gallery {
-    column-count: 2;
-  }
-
-  .closeButton {
-    top: 1vw;
-    right: 3vw;
-  }
-}
-
-@media (max-width: 600px) {
-  .gallery {
-    column-count: 1;
-  }
-
-  .modalImage {
-    max-height: 60vh;
-  }
-
-  .footer_window_photo {
-    font-size: 14px;
-  }
-
-  .closeButton {
-    top: 1vw;
-    right: 10vw;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .modalOverlay { animation: none; }
 }

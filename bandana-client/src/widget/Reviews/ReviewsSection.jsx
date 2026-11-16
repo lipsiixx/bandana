@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import style from "./ReviewsSection.module.css";
 import Title from "../../shared/ui/Title/Title";
+import LoadError from "../../shared/ui/LoadError/LoadError";
 import api from "../../shared/api/api";
 
 const ReviewsSection = () => {
   const [reviews, setReviews] = useState([]);
   const [masterClasses, setMasterClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedMasterClass, setSelectedMasterClass] = useState("all");
   const [pagination, setPagination] = useState({
@@ -27,6 +29,9 @@ const ReviewsSection = () => {
   useEffect(() => {
     fetchMasterClasses();
     fetchReviews();
+    // Перезагружаем при смене выбранного МК и страницы; fetch-функции
+    // стабильны по поведению и намеренно не включены в зависимости.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMasterClass, pagination.page]);
 
   const fetchMasterClasses = async () => {
@@ -46,6 +51,7 @@ const ReviewsSection = () => {
 
   const fetchReviews = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const masterClassId =
         selectedMasterClass === "all" ? null : selectedMasterClass;
@@ -65,6 +71,10 @@ const ReviewsSection = () => {
         );
       }
 
+      if (response?.error) {
+        setLoadError(true);
+      }
+
       if (response?.success && Array.isArray(response.data)) {
         setReviews(response.data);
         if (response.pagination) {
@@ -81,6 +91,7 @@ const ReviewsSection = () => {
     } catch (err) {
       console.error("Ошибка загрузки отзывов:", err);
       setReviews([]);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -151,7 +162,7 @@ const ReviewsSection = () => {
       if (response?.success) {
         setFormMessage({
           type: "success",
-          text: "✅ Спасибо! Отзыв появится после проверки",
+          text: "Спасибо! Отзыв появится после проверки",
         });
         setFormData({ author_name: "", rating: 5, content: "" });
         setShowForm(false);
@@ -234,9 +245,38 @@ const ReviewsSection = () => {
     });
   };
 
+  /* Сводка «4,9 · N отзывов» — считается по загруженным отзывам,
+     показывается от 3 отзывов (правило «реальное значение или скрыто») */
+  const avgRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+        ).toLocaleString("ru-RU", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })
+      : null;
+  const showSummary =
+    !loading && !loadError && pagination.total >= 3 && avgRating;
+
   return (
     <div className={style.reviewsPage}>
-      <Title text="ОТЗЫВЫ" />
+      <Title text="Отзывы" overline="Говорят ученики и родители" />
+
+      {showSummary && (
+        <div className={style.summary}>
+          <span className={style.summaryRating}>{avgRating}</span>
+          <span className={style.summaryCount}>
+            {pagination.total}{" "}
+            {pagination.total % 10 === 1 && pagination.total % 100 !== 11
+              ? "отзыв"
+              : [2, 3, 4].includes(pagination.total % 10) &&
+                  ![12, 13, 14].includes(pagination.total % 100)
+                ? "отзыва"
+                : "отзывов"}
+          </span>
+        </div>
+      )}
 
       <div className={style.content}>
         {/* Фильтр и кнопка */}
@@ -263,7 +303,7 @@ const ReviewsSection = () => {
             onClick={() => setShowForm(!showForm)}
             className={style.addReviewBtn}
           >
-            {showForm ? "✖ Отменить" : "✍ Оставить отзыв"}
+            {showForm ? "Отменить" : "Оставить отзыв"}
           </button>
         </div>
 
@@ -354,6 +394,8 @@ const ReviewsSection = () => {
                 </div>
               ))}
             </div>
+          ) : loadError ? (
+            <LoadError />
           ) : reviews.length === 0 ? (
             <div className={style.emptyReviews}>
               <span className={style.emptyIcon}>💬</span>
@@ -373,7 +415,7 @@ const ReviewsSection = () => {
                       </span>
                       {review.master_class_name && (
                         <span className={style.reviewMasterClass}>
-                          🎓 {review.master_class_name}
+                          {review.master_class_name}
                           {review.master_class_date && (
                             <> • {formatDate(review.master_class_date)}</>
                           )}

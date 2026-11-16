@@ -1,649 +1,211 @@
 .reviewsPage {
-  padding: 1.04167vw;
-  margin-top: 25vw;
-  min-height: 100vh;
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--pad-inline);
+  padding-bottom: var(--sp-16);
 }
 
-.content {
-  max-width: 1200px;
-  margin: 0 auto;
-  margin-top: 5vw;
-}
+.content { margin-top: var(--sp-8); }
 
-/* Фильтр секция */
+/* Фильтр + кнопка */
 .filterSection {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 40px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
 }
 
-.filterGroup {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
+.filterGroup { display: flex; flex-direction: column; gap: 6px; }
+.filterGroup label { font-size: 0.8rem; color: var(--text-3); }
+
+.filterSelect,
+.formInput,
+.formTextarea {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  padding: 12px 14px;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 
-.filterGroup label {
-  color: white;
-  font-weight: 500;
-}
+.filterSelect { min-width: 260px; }
+.filterSelect:focus,
+.formInput:focus,
+.formTextarea:focus { border-color: var(--accent); box-shadow: var(--ring-focus); }
 
-.filterSelect {
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.3);
-  color: white;
-  font-size: 14px;
+.formTextarea { resize: vertical; min-height: 120px; width: 100%; }
+
+.addReviewBtn,
+.submitBtn,
+.paginationBtn {
   cursor: pointer;
-  min-width: 250px;
-}
-
-.filterSelect option {
-  background: #1a1a2e;
+  font-family: var(--font-text);
+  font-weight: 700;
+  border-radius: var(--r-control);
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
 }
 
 .addReviewBtn {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  color: white;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
 }
+.addReviewBtn:hover { background: var(--accent-hover); }
 
-.addReviewBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
-}
-
-/* Форма */
+/* Форма отзыва */
 .formContainer {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-6);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
 }
 
 .formContainer h3 {
-  color: white;
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-h3);
+  margin-bottom: var(--sp-4);
 }
 
-.reviewForm {
+.reviewForm { display: flex; flex-direction: column; gap: var(--sp-4); }
+.formGroup { display: flex; flex-direction: column; gap: 6px; }
+.formGroup label,
+.ratingInput label { font-size: 0.85rem; color: var(--text-2); }
+
+.ratingInput { display: flex; flex-direction: column; gap: 6px; }
+.starsInput, .stars { display: inline-flex; gap: 4px; font-size: 1.4rem; }
+/* Warning-цвет — только для статусов; рейтинг — в акценте */
+.starFilled { color: var(--accent); }
+
+/* Сводка рейтинга: крупное число вместо оранжевых звёзд */
+.summary {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: baseline;
+  gap: var(--sp-3);
+  justify-content: center;
+  margin-bottom: var(--sp-6);
 }
 
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.summaryRating {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  line-height: 1;
 }
 
-.formGroup label {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.formInput,
-.formTextarea {
-  padding: 12px 15px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.3);
-  color: white;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.formInput:focus,
-.formTextarea:focus {
-  outline: none;
-  border-color: #a855f7;
-}
-
-.formInput::placeholder,
-.formTextarea::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.formHint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Рейтинг */
-.ratingInput {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ratingInput label {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.starsInput {
-  display: flex;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.starsInput span {
-  font-size: 28px;
-  transition: transform 0.2s;
-}
-
-.starsInput span:hover {
-  transform: scale(1.1);
-}
-
-.starFilled {
-  color: #ffd700;
-  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-}
-
-.starEmpty {
-  color: rgba(255, 255, 255, 0.3);
-}
+.summaryCount { color: var(--text-2); font-size: 1rem; }
+.starEmpty { color: var(--line); }
 
 .formMessage {
-  padding: 12px 15px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: var(--r-control);
+  font-size: 0.95rem;
 }
-
-.formMessage.success {
-  background: rgba(34, 197, 94, 0.2);
-  border: 1px solid #22c55e;
-  color: #22c55e;
-}
-
-.formMessage.error {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid #ef4444;
-  color: #ef4444;
-}
+.formMessage.success { background: rgba(48, 220, 151, 0.14); color: var(--success); }
+.formMessage.error { background: rgba(255, 104, 107, 0.14); color: var(--error); }
 
 .submitBtn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  color: white;
+  align-self: flex-start;
+  padding: 14px 24px;
+  background: var(--accent);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: transform 0.2s;
 }
-
-.submitBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.submitBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.submitBtn:hover:not(:disabled) { background: var(--accent-hover); }
+.submitBtn:disabled { opacity: 0.6; cursor: default; }
 
 /* Список отзывов */
-.reviewsList {
-  margin-top: 20px;
-}
+.reviewsList { display: flex; flex-direction: column; gap: var(--sp-4); }
 
 .reviewCard {
-  color: #ffff;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(5px);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  transition: transform 0.2s;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reviewCard:hover {
-  transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.12);
+  padding: var(--sp-6);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
 }
 
 .reviewHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  align-items: flex-start;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-3);
 }
 
-.reviewerInfo {
-  display: flex;
-  align-items: flex-end;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.reviewerName {
-  color: white;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.reviewDate {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-}
-
-.stars {
-  display: flex;
-  gap: 4px;
-}
-
-.reviewContent {
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  font-size: 14px;
-}
-
-/* Пагинация */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 40px;
-  padding: 20px;
-}
-
-.paginationBtn {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.paginationBtn:hover:not(:disabled) {
-  background: rgba(147, 51, 234, 0.5);
-  border-color: #a855f7;
-}
-
-.paginationBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.paginationInfo {
-  color: white;
-}
+.reviewerInfo { display: flex; flex-direction: column; gap: 4px; }
+.reviewerName { font-weight: 700; font-size: 1.05rem; color: var(--text); }
+.reviewMasterClass { font-size: 0.85rem; color: var(--accent-hover); }
+.reviewDate { font-size: 0.8rem; color: var(--text-3); }
+.reviewContent { color: var(--text-2); line-height: 1.6; }
 
 /* Пустое состояние */
 .emptyReviews {
   text-align: center;
-  padding: 60px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  padding: var(--sp-12);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
 }
+.emptyIcon { font-size: 40px; display: block; margin-bottom: var(--sp-3); }
+.emptyReviews p { color: var(--text); }
+.emptySubtext { color: var(--text-3); font-size: 0.9rem; margin-top: 4px; }
 
-.emptyIcon {
-  font-size: 64px;
-  display: block;
-  margin-bottom: 20px;
-}
-
-.emptyReviews p {
-  color: white;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.emptySubtext {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-}
-
-/* Скелетон */
-.skeletonContainer {
+/* Пагинация */
+.pagination {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
 }
+.paginationBtn {
+  padding: 10px 18px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.paginationBtn:hover:not(:disabled) { border-color: var(--accent); }
+.paginationBtn:disabled { opacity: 0.4; cursor: default; }
+.paginationInfo { color: var(--text-3); font-size: 0.9rem; }
 
+/* Скелетоны */
+.skeletonContainer { display: flex; flex-direction: column; gap: var(--sp-4); }
 .skeletonCard {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 20px;
-  animation: pulse 1.5s ease-in-out infinite;
+  padding: var(--sp-6);
+  border-radius: var(--r-card);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.skeletonHeader, .skeletonStars, .skeletonText {
+  border-radius: var(--r-chip);
+  background: linear-gradient(100deg, var(--surface-1) 30%, var(--surface-2) 50%, var(--surface-1) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skeletonHeader { height: 18px; width: 40%; margin-bottom: 12px; }
+.skeletonStars { height: 16px; width: 120px; margin-bottom: 12px; }
+.skeletonText { height: 48px; width: 100%; }
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
-.skeletonHeader {
-  width: 60%;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  margin-bottom: 15px;
+@media (max-width: 560px) {
+  .filterSelect { min-width: 0; width: 100%; }
+  .filterSection { flex-direction: column; align-items: stretch; }
+  .addReviewBtn { width: 100%; }
 }
 
-.skeletonStars {
-  width: 100px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.skeletonText {
-  width: 100%;
-  height: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  margin-bottom: 10px;
-}
-
-.skeletonText:last-child {
-  width: 80%;
-}
-
-/* Добавь в конец файла ReviewsSection.module.css */
-
-/* ========== НОВЫЕ СТИЛИ ДЛЯ СТАТУСОВ ОТЗЫВОВ ========== */
-
-/* Кнопка "Мои отзывы" */
-.myReviewsBtn {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.myReviewsBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-/* Секция "Мои отзывы" */
-.myReviewsSection {
-  margin-bottom: 40px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.myReviewsSection h3 {
-  color: white;
-  font-size: 22px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.myReviewCard {
-  border-left: 4px solid #3b82f6 !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Стили для статусов */
-.reviewStatus {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.statusPending {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(251, 191, 36, 0.2);
-  border: 1px solid #fbbf24;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #fbbf24;
-}
-
-.statusApproved {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(34, 197, 94, 0.2);
-  border: 1px solid #22c55e;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #22c55e;
-}
-
-.statusRejected {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid #ef4444;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #ef4444;
-}
-
-.statusBlocked {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(107, 114, 128, 0.3);
-  border: 1px solid #6b7280;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #9ca3af;
-}
-
-/* Причина отклонения */
-.rejectionReason {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border-left: 3px solid #ef4444;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #fca5a5;
-  line-height: 1.5;
-}
-
-/* Мастер-класс в отзыве */
-.reviewMasterClass {
-  color: #a855f7;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Дополнительные улучшения */
-.filterGroup {
-  flex: 1;
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .myReviewsSection {
-    padding: 15px;
-  }
-
-  .myReviewsSection h3 {
-    font-size: 18px;
-  }
-
-  .reviewStatus {
-    margin-top: 8px;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .statusPending,
-  .statusApproved,
-  .statusRejected,
-  .statusBlocked {
-    font-size: 10px;
-    padding: 3px 8px;
-  }
-
-  .reviewMasterClass {
-    font-size: 11px;
-  }
-
-  .rejectionReason {
-    font-size: 11px;
-    padding: 8px 10px;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.reviewCard {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.filterSelect option {
-  background: #1a1a2e;
-  color: white;
-}
-
-.filterSelect option:hover {
-  background: #2d2d44;
-}
-
-.formMessage.error {
-  background: rgba(239, 68, 68, 0.15);
-  border-left: 4px solid #ef4444;
-  border-radius: 8px;
-  padding: 12px 16px;
-}
-
-.formMessage.success {
-  background: rgba(34, 197, 94, 0.15);
-  border-left: 4px solid #22c55e;
-  border-radius: 8px;
-  padding: 12px 16px;
-}
-
-.myReviewsSection h3::before {
-  content: "📋";
-  font-size: 20px;
-}
-
-.myReviewsSection .emptyReviews {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 40px;
-}
-
-.myReviewsSection .emptyReviews p {
-  margin: 0;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-  .reviewsPage {
-    padding: 4vw;
-    margin-top: 30vw;
-  }
-
-  .filterSection {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filterGroup {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filterSelect {
-    width: 100%;
-  }
-
-  .formContainer {
-    padding: 20px;
-  }
-
-  .reviewHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .reviewerInfo {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .starsInput span {
-    font-size: 24px;
-  }
-
-  .submitBtn {
-    width: 100%;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .skeletonHeader, .skeletonStars, .skeletonText { animation: none; }
 }

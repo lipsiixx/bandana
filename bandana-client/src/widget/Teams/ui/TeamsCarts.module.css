@@ -1,639 +1,207 @@
-@font-face {
-  font-family: "Roboto";
-  src: url("../../../shared/fonts/Roboto.ttf");
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--pad-inline);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-6);
 }
 
-.container {
-  width: 75vw;
-  margin: 15vw auto;
+/* ---------- Карточка (типографская, по макету) ---------- */
+.card {
   display: flex;
   flex-direction: column;
-  gap: 3vw;
+  gap: var(--sp-4);
+  padding: 28px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-quiet);
+  border-radius: var(--r-card);
 }
 
-.card {
-  display: grid;
-  grid-template-columns: 35% 65%;
-  min-height: 30vw;
-
-  background: rgba(22, 33, 62, 0.35);
-  backdrop-filter: blur(3px);
-
-  border: 2px solid transparent;
-  border-image: linear-gradient(100deg, #6466f0 0%, #eb4899 100%);
-  border-image-slice: 1;
-
-  border-radius: 18px;
-  overflow: hidden;
-  color: azure;
-  transform: skew(-6deg);
-  transition: transform 0.3s ease;
+.cardClosed {
+  background: #0e0e14;
+  border-style: dashed;
+  border-color: var(--line);
 }
 
-.card:hover {
-  transform: skew(-6deg) scale(1.02);
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
 }
 
-.left {
+.city {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* Розовый чип открытого набора — скос «банданы» */
+.chipOpen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: skewX(var(--skew));
+  background: var(--hot);
+  color: var(--bg);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Пульсирующая точка-«индикатор записи» (бесконечно, пока в кадре) */
+.ping {
   position: relative;
-  background: #0b1220;
-  overflow: hidden;
-}
-
-.imageContainer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  width: 8px;
+  height: 8px;
   display: block;
 }
 
-.nameOverlay {
+.pingDot,
+.pingWave {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.15));
-  padding: 1.5vw;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.pingWave { animation: ping 1.6s ease-out infinite; }
+
+@keyframes ping {
+  from { transform: scale(1); opacity: 0.8; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+.chipClosed {
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .teamName {
-  font-family: "Roboto";
-  font-size: min(1.8vw, 3.2vh);
-  font-weight: bold;
   margin: 0;
-  text-align: center;
-  color: white;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1.15;
 }
 
-.right {
-  padding: 2vw 2.5vw;
-  display: flex;
-  align-items: center;
-}
+.cardClosed .teamName { color: var(--text-2); }
 
-.infoContainer {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5vw;
-  font-family: "Roboto";
-}
-
-.sectionTitle {
-  font-size: min(1.1vw, 2vh);
-  font-weight: bold;
-  color: #eb4899;
-  margin: 0 0 0.5vw 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.descriptionSection {
-  margin-bottom: 0.5vw;
-}
-
-.description {
-  font-size: min(1vw, 1.9vh);
-  line-height: 1.6;
+.facts {
   margin: 0;
-  opacity: 0.95;
-}
-
-.detailsGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5vw;
-  margin: 1vw 0;
+  grid-template-columns: 110px minmax(0, 1fr);
+  row-gap: 10px;
+  font-size: 1rem;
 }
 
-.detailItem {
-  display: flex;
-  align-items: center;
-  gap: 0.8vw;
-}
+.facts dt { color: var(--text-2); }
+.facts dd { margin: 0; }
 
-.detailIcon {
-  font-size: min(1.4vw, 2.5vh);
-}
-
-.detailLabel {
-  font-size: min(0.8vw, 1.5vh);
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 0.2vw;
-}
-
-.detailValue {
-  font-size: min(1vw, 1.9vh);
-  font-weight: 500;
-}
-
-.instructorsSection,
-.achievementsSection {
-  margin-top: 0.5vw;
-}
-
-.instructors {
-  font-size: min(0.95vw, 1.8vh);
-  line-height: 1.5;
+.closedNote {
   margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-2);
 }
 
 .achievements {
   list-style: none;
+  margin: 0;
   padding: 0;
-  margin: 0.5vw 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5vw;
+  gap: var(--sp-2);
+  font-size: 0.9rem;
+  color: var(--text-2);
 }
 
-.achievementItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5vw;
-  font-size: min(0.9vw, 1.7vh);
+.achievements li {
+  padding-left: 18px;
+  position: relative;
 }
 
-.achievementText {
-  color: #ffff;
-}
-
-.trophyIcon {
-  flex-shrink: 0;
-  margin-top: 0.2vw;
-}
-
-.showMoreButton {
-  background: linear-gradient(100deg, #6466f0 0%, #eb4899 100%);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  padding: 0.5vw 1vw;
-  font-family: "Roboto";
-  font-size: min(0.8vw, 1.5vh);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5vw;
-  transition: all 0.3s ease;
-  width: 100%;
-  justify-content: center;
-}
-
-.showMoreButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(235, 72, 153, 0.3);
-}
-
-.moreIcon {
-  font-size: min(1vw, 1.8vh);
-}
-
-.recruitingSection {
-  display: flex;
-  align-items: center;
-  gap: 0.8vw;
-}
-
-.statusOpen,
-.statusClosed {
-  padding: 0.3vw 0.8vw;
-  border-radius: 20px;
-  font-size: min(0.8vw, 1.5vh);
-  font-weight: 500;
-  margin: 0;
-}
-
-.statusOpen {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  border: 1px solid #4caf50;
-}
-
-.statusClosed {
-  background-color: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid #f44336;
-}
-
-.modalOverlay {
-  position: fixed;
-  top: 0;
+.achievements li::before {
+  content: "✦";
+  position: absolute;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+  color: var(--accent);
+  font-size: 0.75em;
+  top: 0.3em;
+}
+
+.achievementsMore { color: var(--text-3); }
+
+.spacer { flex: 1; }
+
+.ctaOpen,
+.ctaClosed {
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease;
-  padding: 2vw;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.closedMessage {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-  font-style: italic;
-  padding: 10px;
-  text-align: center;
-  background: rgba(244, 67, 54, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(244, 67, 54, 0.3);
-}
-
-.modalContent {
-  background: linear-gradient(135deg, #1a1f38 0%, #0f1529 100%);
-  width: 50vw;
-  max-height: 85vh;
-  overflow: hidden;
-  border: 2px solid;
-  border-image: linear-gradient(100deg, #6466f0 0%, #eb4899 100%);
-  border-image-slice: 1;
-  animation: slideUp 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modalHeader {
-  padding: 1.5vw 2vw;
-  border-bottom: 1px solid rgba(235, 72, 153, 0.3);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.modalTitle {
-  font-family: "Roboto";
-  font-size: min(1.4vw, 2.5vh);
-  color: white;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.8vw;
-}
-
-.modalClose {
-  background: none;
-  border: none;
-  color: #eb4899;
-  font-size: min(1.5vw, 2.8vh);
+  border-radius: var(--r-control);
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 0.5vw;
-  border-radius: 50%;
-  width: 2.5vw;
-  height: 2.5vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
 }
 
-.modalClose:hover {
-  background: rgba(235, 72, 153, 0.2);
-  transform: rotate(90deg);
-}
-
-.modalBody {
-  padding: 2vw;
-  overflow-y: auto;
-  flex: 1;
-  max-height: calc(85vh - 12vw);
-}
-
-.modalAchievements {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1vw;
-}
-
-.modalAchievementItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 1vw;
-  padding: 1vw;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border-left: 4px solid #eb4899;
-  transition: all 0.3s ease;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.modalAchievementItem:hover {
-  background: rgba(235, 72, 153, 0.1);
-  transform: translateX(5px);
-}
-
-.achievementNumber {
-  background: linear-gradient(100deg, #6466f0 0%, #eb4899 100%);
-  color: white;
-  width: 2vw;
-  height: 2vw;
-  min-width: 2vw;
-  min-height: 2vw;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Roboto";
-  font-weight: bold;
-  font-size: min(0.8vw, 1.5vh);
-  flex-shrink: 0;
-}
-
-.modalAchievementText {
-  font-size: min(0.95vw, 1.8vh);
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-  width: 100%;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
-  display: block;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-.modalStats {
-  margin-top: 1.5vw;
-  padding-top: 1.5vw;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: min(0.9vw, 1.7vh);
-}
-
-.modalFooter {
-  padding: 1.5vw 2vw;
-  border-top: 1px solid rgba(235, 72, 153, 0.3);
-  display: flex;
-  justify-content: flex-end;
-  flex-shrink: 0;
-}
-
-.modalButton {
-  background: linear-gradient(100deg, #6466f0 0%, #eb4899 100%);
+.ctaOpen {
+  background: var(--accent);
+  color: #fff;
   border: none;
-  border-radius: 10px;
-  color: white;
-  padding: 0.8vw 2vw;
-  font-family: "Roboto";
-  font-size: min(0.9vw, 1.7vh);
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.modalButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(235, 72, 153, 0.4);
+.ctaOpen:hover { background: var(--accent-hover); }
+
+.ctaClosed {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
 }
 
-.loading {
-  text-align: center;
-  color: white;
-  margin: 5vw 0;
-  font-size: 1.2vw;
+.ctaClosed:hover { border-color: var(--accent); }
+
+/* ---------- Скелетоны ---------- */
+.skeletonCard {
+  height: 320px;
+  border-radius: var(--r-card);
+  background: linear-gradient(
+    100deg,
+    var(--surface-1) 40%,
+    var(--surface-2) 50%,
+    var(--surface-1) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
 }
 
-.buttonRecord {
-  width: 15vw;
-  height: 3vw;
-  font-size: 1vw;
-  margin-left: 3vw;
-  background: linear-gradient(89.02deg, #6366f1 4.27%, #8b5cf6 94.41%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: skew(-20deg);
-  font-weight: bold;
-  padding: 12px 24px;
-  transition: transform 0.3s ease;
-  border: none;
-  cursor: pointer;
+@keyframes shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -80% 0; }
 }
 
-.modalBody::-webkit-scrollbar {
-  width: 10px;
+@media (max-width: 1024px) {
+  .container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.modalBody::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  margin: 5px 0;
+@media (max-width: 640px) {
+  .container { grid-template-columns: 1fr; }
 }
 
-.modalBody::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #6466f0, #eb4899);
-  border-radius: 10px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  background-size: 200% 200%;
-  animation: scrollbarGradient 3s ease infinite;
-}
-
-.modalBody::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #7b7df2, #f05fa3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.modalBody {
-  scrollbar-width: thin;
-  scrollbar-color: #eb4899 rgba(255, 255, 255, 0.05);
-}
-
-@keyframes scrollbarGradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.modalBody {
-  scroll-behavior: smooth;
-}
-
-@media (max-width: 768px) {
-  .container {
-    width: 85vw;
-    margin: 30vw auto;
-  }
-
-  .buttonRecord {
-    width: 100%;
-    margin-left: 0;
-    font-size: 4vw;
-    height: 8vw;
-  }
-
-  .card {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    transform: skew(-3deg);
-  }
-
-  .left {
-    height: 55vw;
-  }
-
-  .nameOverlay {
-    padding: 4vw;
-  }
-
-  .teamName {
-    font-size: 5vw;
-  }
-
-  .right {
-    padding: 4vw;
-  }
-
-  .infoContainer {
-    gap: 3vw;
-  }
-
-  .sectionTitle {
-    font-size: 3.5vw;
-  }
-
-  .description {
-    font-size: 3.2vw;
-  }
-
-  .detailsGrid {
-    grid-template-columns: 1fr;
-    gap: 3vw;
-  }
-
-  .detailIcon {
-    font-size: 4vw;
-  }
-
-  .detailLabel,
-  .detailValue,
-  .instructors,
-  .achievementItem {
-    font-size: 3.2vw;
-  }
-
-  .statusOpen,
-  .statusClosed {
-    font-size: 3vw;
-    padding: 0.8vw 2vw;
-  }
-
-  .showMoreButton {
-    font-size: 3vw;
-    padding: 1.5vw;
-  }
-
-  .moreIcon {
-    font-size: 3.5vw;
-  }
-
-  .modalOverlay {
-    padding: 4vw;
-  }
-
-  .modalContent {
-    width: 90vw;
-    max-height: 90vh;
-    margin: 0;
-  }
-
-  .modalHeader {
-    padding: 4vw;
-  }
-
-  .modalTitle {
-    font-size: 4vw;
-  }
-
-  .modalClose {
-    font-size: 5vw;
-    width: 8vw;
-    height: 8vw;
-  }
-
-  .modalBody {
-    padding: 4vw;
-    max-height: calc(90vh - 25vw);
-  }
-
-  .modalAchievementItem {
-    padding: 3vw;
-    gap: 3vw;
-  }
-
-  .achievementNumber {
-    width: 6vw;
-    height: 6vw;
-    font-size: 3vw;
-    min-width: 6vw;
-    min-height: 6vw;
-  }
-
-  .modalAchievementText {
-    font-size: 3.5vw;
-    line-height: 1.5;
-  }
-
-  .modalStats {
-    font-size: 3.2vw;
-    margin-top: 4vw;
-    padding-top: 4vw;
-  }
-
-  .modalFooter {
-    padding: 4vw;
-  }
-
-  .modalButton {
-    font-size: 3.5vw;
-    padding: 2vw 6vw;
-  }
-
-  .loading {
-    font-size: 4vw;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .pingWave { animation: none; }
+  .skeletonCard { animation: none; }
 }

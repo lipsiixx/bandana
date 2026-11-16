@@ -9,27 +9,47 @@ import vk from "../../../shared/svg/vk.svg";
 const Contact = () => {
   return (
     <div className={style.contact}>
-      <Title text="CONTACT" />
+      <div className={style.inner}>
+        <Title text="Контакты" overline="Связаться" align="center" />
 
-      <div className={style.buttons}>
-        <RollerogramButton
-          onClick={() => window.open("https://t.me/dancerinbandana", "_blank")}
-          className="telegram"
-          text="TELEGRAM CHANNEL"
-          svg={tg}
-        />
-        <RollerogramButton
-          onClick={() => window.open("https://vk.com/dancer_bandana", "_blank")}
-          className="vk"
-          text="VKONTACTE"
-          svg={vk}
-        />
-        <RollerogramButton
-          onClick={() => window.open("https://vk.com/fsdschool", "_blank")}
-          className="bot"
-          text="COMMUNITY VK"
-          svg={vk}
-        />
+        <div className={style.buttons}>
+          <RollerogramButton
+            onClick={() =>
+              window.open(
+                "https://t.me/dancerinbandana",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            className="telegram"
+            text="Telegram-канал"
+            svg={tg}
+          />
+          <RollerogramButton
+            onClick={() =>
+              window.open(
+                "https://vk.com/dancer_bandana",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            className="vk"
+            text="ВКонтакте"
+            svg={vk}
+          />
+          <RollerogramButton
+            onClick={() =>
+              window.open(
+                "https://vk.com/fsdschool",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            className="bot"
+            text="Сообщество школы"
+            svg={vk}
+          />
+        </div>
       </div>
     </div>
   );

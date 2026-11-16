@@ -1,0 +1,141 @@
+/* ============================================================
+   BANDANA · design tokens — направление «Свет на сцене»
+   Единый источник правды: палитра, типографика, сетка, форма.
+   Используется и в CSS-модулях (var(--...)), и в компонентах.
+   ============================================================ */
+
+:root {
+  /* ---------- Палитра ---------- */
+  --bg: #0a0a0f;          /* фон страницы — тёмный зал */
+  --surface-1: #121219;   /* карточки */
+  --surface-2: #1a1a24;   /* поля, модалки */
+  --line: #2a2a38;        /* рамки */
+  --line-quiet: #222226;  /* тихие разделители */
+
+  --accent: #7c5cff;      /* «свет» прожектора */
+  --accent-hover: #8f74ff;
+  --accent-press: #6a54ff;
+  --accent-soft: rgba(124, 92, 255, 0.14);
+
+  --hot: #ff3d8b;         /* «live» — лента чемпионатов, статусы */
+  --hot-soft: rgba(255, 61, 139, 0.16);
+
+  --text: #f4f3f7;
+  --text-2: #a7a4ad;      /* вторичный */
+  --text-3: #8a8792;      /* мета — подтянут для контраста AA на --bg */
+
+  --success: #30dc97;
+  --warning: #ffb547;
+  --error: #ff686b;
+
+  /* ---------- Свет / тени ---------- */
+  --glow: 0 0 40px rgba(124, 92, 255, 0.45);   /* только логотип/CTA в hero */
+  --shadow-card: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --ring-focus: 0 0 0 3px rgba(124, 92, 255, 0.55);
+
+  /* ---------- Типографика ---------- */
+  --font-display: 'Unbounded', 'Manrope', system-ui, sans-serif;
+  --font-text: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --fs-display: clamp(3rem, 1.6rem + 7vw, 7rem);       /* 48 → 112 */
+  --fs-h2: clamp(1.875rem, 1.3rem + 2.6vw, 3.5rem);    /* 30 → 56  */
+  --fs-h3: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);    /* 20 → 24  */
+  --fs-body-l: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);/* 17 → 20  */
+  --fs-body: 1rem;                                     /* 16, без зума на iOS */
+  --fs-overline: 0.75rem;                              /* 12 */
+
+  /* ---------- Сетка и отступы (4-based) ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+  --sp-32: 128px;
+
+  --container: 1280px;
+  --pad-inline: clamp(1.25rem, 5vw, 4.5rem);  /* поля страницы: 20px моб → 72px деск */
+
+  /* ---------- Радиусы ---------- */
+  --r-chip: 6px;
+  --r-control: 12px;
+  --r-card: 20px;
+  --r-pill: 999px;
+
+  /* ---------- Форма ---------- */
+  --skew: -12deg;   /* только лента-«бандана» */
+
+  /* ---------- Моушн ---------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-section: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur-mid: 300ms;
+  --dur-slow: 600ms;
+
+  --header-h: 72px;
+}
+
+/* ---------- База ---------- */
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+a { color: inherit; text-decoration: none; }
+
+::selection { background: var(--accent); color: #fff; }
+
+:focus-visible { outline: none; box-shadow: var(--ring-focus); border-radius: var(--r-control); }
+
+/* Якоря секций не должны прятаться под фиксированный хедер */
+section[id],
+[id="biography"],
+[id="form"],
+[id="performances"],
+[id="masterclasses"] {
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
+/* Контейнер контента */
+.bd-container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--pad-inline);
+}
+
+/* Надзаголовок-оверлайн */
+.bd-overline {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -48,6 +48,9 @@ const VideoSlider = ({ title }) => {
     if (isPaused || length === 0) return;
     intervalRef.current = setInterval(nextSlide, 8000);
     return () => clearInterval(intervalRef.current);
+    // nextSlide замыкает index/length, которые уже в зависимостях — интервал
+    // пересоздаётся при их изменении. Добавление nextSlide ничего не меняет.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused, index, length]);
 
   const handleMouseEnter = () => setIsPaused(true);

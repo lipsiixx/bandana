@@ -1,192 +1,70 @@
-@font-face {
-  font-family: "RussoOne";
-  src: url("../../fonts/RussoOne.ttf");
-}
-
-/* Кнопка с градиентом и искажением */
+/* Базовая кнопка — прямые углы, токены */
 .rollerogram__button__base {
-  background: linear-gradient(89.02deg, #6366f1 4.27%, #8b5cf6 94.41%);
-  color: white;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transform: skew(-20deg);
-  font-weight: bold;
-  padding: 12px 24px;
-  transition: transform 0.3s ease;
+  gap: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 24px;
   border: none;
+  border-radius: var(--r-control);
   cursor: pointer;
+  transition: background var(--dur-fast) ease, box-shadow var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
 }
 
-.rollerogram__button__base p {
-  transform: skew(20deg);
-  margin: 0;
-}
+.rollerogram__button__base p { margin: 0; }
 
 .rollerogram__button__base:hover {
-  transform: skew(-20deg) scale(1.18);
+  background: var(--accent-hover);
+  box-shadow: var(--glow);
 }
 
-/* Заголовок "Обо мне" */
-.aboutMe {
-  width: 18.22917vw;
-  height: 4.16667vw;
-  font-family: "RussoOne";
-  font-size: min(2.08333vw, 3.7037vh);
-  margin-top: 11vw;
-}
+.icon { width: 20px; height: 20px; }
 
-/* Кнопки раскрытия и скрытия */
+/* Кнопка «Читать полностью / Свернуть» — вторичная */
 .expandButton,
 .collapseButton {
-  width: 13.02083vw;
-  height: 2.60417vw;
-  font-family: "RussoOne";
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-style: normal;
-  font-weight: 400;
-  font-size: min(1.04167vw, 1.85185vh);
-  line-height: 1.66667vh;
-  margin: 2.77778vh 0 6.5vw;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.icon {
-  width: 2vw;
-  height: 2vw;
-  transform: skew(20deg);
+.expandButton:hover,
+.collapseButton:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: none;
 }
 
-.telegram {
-  font-size: min(1.04167vw, 1.85185vh);
-  width: 17vw;
-  height: 5vw;
-  display: flex;
-  margin-inline: 1vw;
-  justify-content: space-around;
-  background: linear-gradient(89.41deg, #6366f1 0.44%, #31aea8 99.44%);
-}
+/* Устаревший hero-вариант aboutMe — на всякий случай нейтрализуем */
+.aboutMe { font-family: var(--font-display); }
 
-.vk {
-  font-size: min(1.04167vw, 1.85185vh);
-  height: 5vw;
-  width: 17vw;
-  display: flex;
-  margin-inline: 1vw;
-  justify-content: space-around;
-  background: linear-gradient(90deg, #d94ca5 1.99%, #e11496 100%);
-}
-
+/* Соцсети — ровные плашки с иконкой */
+.telegram,
+.vk,
 .bot {
-  font-size: min(1.04167vw, 1.85185vh);
-  height: 5vw;
-  width: 17vw;
-  display: flex;
-  justify-content: space-around;
-  margin-inline: 1vw;
-  background: linear-gradient(90deg, #8b5cf6 0%, #5915f4 100%);
+  gap: 12px;
+  min-width: 220px;
+  justify-content: center;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
 }
 
-/* Адаптив под планшеты */
-@media (max-width: 1024px) {
-  .expandButton {
-    width: 45vw;
-    height: 3vw;
-    font-size: min(2.59067vw, 2.15983vh);
-    margin: 2.77778vh 0 6.5vw 5vw;
-  }
-
-  .collapseButton {
-    width: 25vw;
-    height: 3vw;
-    font-size: min(2.59067vw, 2.15983vh);
-    margin: 2.77778vh 0 6.5vw 5vw;
-  }
-
-  .icon {
-    width: 5vw;
-    height: 5vw;
-    transform: skew(20deg);
-  }
-
-  .telegram {
-    font-size: min(1.5625vw, 2.77778vh);
-    width: 27vw;
-    height: 8vw;
-    display: flex;
-    margin-inline: 1vw;
-    justify-content: space-around;
-    background: linear-gradient(89.41deg, #6366f1 0.44%, #31aea8 99.44%);
-  }
-
-  .vk {
-    font-size: min(1.5625vw, 2.77778vh);
-    width: 27vw;
-    height: 8vw;
-    display: flex;
-    margin-inline: 1vw;
-    justify-content: space-around;
-    background: linear-gradient(90deg, #d94ca5 1.99%, #e11496 100%);
-  }
-
-  .bot {
-    font-size: min(1.5625vw, 2.77778vh);
-    width: 27vw;
-    height: 8vw;
-    display: flex;
-    justify-content: space-around;
-    margin-inline: 1vw;
-    background: linear-gradient(90deg, #8b5cf6 0%, #5915f4 100%);
-  }
-}
-
-/* Адаптив под телефоны */
-@media (max-width: 768px) {
-  .aboutMe {
-    width: 40vw;
-    height: 10vw;
-    font-size: min(4.53368vw, 3.7797vh);
-  }
-}
+.telegram { background: #2aabee; }
+.telegram:hover { background: #1c93d0; }
+.vk,
+.bot { background: var(--surface-2); border: 1px solid var(--line); }
+.vk:hover,
+.bot:hover { background: var(--surface-1); border-color: var(--accent); box-shadow: none; }
 
 @media (max-width: 600px) {
-  .icon {
-    width: 8vw;
-    height: 8vw;
-    transform: skew(20deg);
-  }
-
-  .telegram {
-    font-size: min(3.64583vw, 6.48148vh);
-    width: 60vw;
-    height: 15vw;
-    display: flex;
-    margin-top: 5vw;
-    margin-inline: 1vw;
-    justify-content: space-around;
-    background: linear-gradient(89.41deg, #6366f1 0.44%, #31aea8 99.44%);
-  }
-
-  .vk {
-    font-size: min(3.64583vw, 6.48148vh);
-    width: 60vw;
-    height: 15vw;
-    margin-top: 5vw;
-    display: flex;
-    margin-inline: 1vw;
-    justify-content: space-around;
-    background: linear-gradient(90deg, #d94ca5 1.99%, #e11496 100%);
-  }
-
-  .bot {
-    font-size: min(3.64583vw, 6.48148vh);
-    width: 60vw;
-    height: 15vw;
-    margin-top: 5vw;
-    display: flex;
-    justify-content: space-around;
-    margin-inline: 1vw;
-    background: linear-gradient(90deg, #8b5cf6 0%, #5915f4 100%);
-  }
+  .telegram, .vk, .bot { width: 100%; }
 }

@@ -7,6 +7,7 @@ import Home from "../pages/Home";
 const Gallery = lazy(() => import("../pages/Gallery"));
 const Teams = lazy(() => import("../pages/Teams"));
 const Reviews = lazy(() => import("../pages/Reviews"));
+const NotFound = lazy(() => import("../pages/NotFound"));
 
 const RouterProvider = () => (
   <BrowserRouter>
@@ -16,6 +17,7 @@ const RouterProvider = () => (
         <Route path={AppRoutes.GALLERY} element={<Gallery />} />
         <Route path={AppRoutes.TEAMS} element={<Teams />} />
         <Route path={AppRoutes.REVIEWS} element={<Reviews />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   </BrowserRouter>

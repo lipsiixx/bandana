@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { ParticleCanvas } from "../shared/ui/Canvas/ParticleCanvas.jsx";
+import React, { useEffect } from "react";
 import ModelWindowProject from "../features/ExpandableText/ui/ModelWindowProject.jsx";
 import HeroSerction from "../widget/HeroSection/ui/HeroSerction.jsx";
 import EventsSection from "../widget/Events/EventsSection.jsx";
@@ -8,9 +7,9 @@ import Slider from "../shared/ui/Slider/Slider.jsx";
 import Contact from "../widget/Contact/ui/Contact.jsx";
 import Header from "../widget/Header/ui/Header.jsx";
 import Forma from "../widget/Forma/ui/Forma.jsx";
-import logo from "../shared/img/logo.png";
 import api from "../shared/api/api.js";
 import MasterCasses from "../widget/MasterCasses/MasterCasses.jsx";
+import Reveal from "../shared/ui/Reveal/Reveal.jsx";
 
 const Home = () => {
   useEffect(() => {
@@ -26,32 +25,32 @@ const Home = () => {
   }, []);
   return (
     <div>
-      <ParticleCanvas className="background" />
-
-      <Header
-        text={[
-          { img: logo, link: "/" },
-          { page: "Галерея", link: "/gallery" },
-          { page: "Команды", link: "/teams" },
-          { page: "Отзывы", link: "/reviews" },
-        ]}
-      />
+      <Header />
 
       <ModelWindowProject />
 
       <HeroSerction />
 
-      <EventsSection />
+      <Reveal as="section" id="masterclasses">
+        <EventsSection />
+        <MasterCasses />
+      </Reveal>
 
-      <MasterCasses />
+      <Reveal as="section" id="biography">
+        <Biography />
+      </Reveal>
 
-      <Biography />
+      <Reveal as="section" id="performances">
+        <Slider title="Наши выступления" />
+      </Reveal>
 
-      <Slider title="НАШИ ВЫСТУПЛЕНИЯ" />
+      <Reveal as="section" id="form">
+        <Forma />
+      </Reveal>
 
-      <Forma />
-
-      <Contact />
+      <Reveal as="section">
+        <Contact />
+      </Reveal>
     </div>
   );
 };

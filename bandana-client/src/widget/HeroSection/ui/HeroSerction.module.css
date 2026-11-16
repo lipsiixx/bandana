@@ -1,41 +1,277 @@
-@font-face {
-  font-family: "Roboto";
-  src: url("../../../shared/fonts/Roboto.ttf");
-}
-
-@font-face {
-  font-family: "Hayate-Regular";
-  src: url("../../../shared/fonts/Hayate-Regular.ttf");
-}
-
 .hero {
-  color: #ffff;
-  width: 100%;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding-top: calc(var(--header-h) + var(--sp-8));
+  padding-bottom: var(--sp-16);
+  background: var(--bg);
+}
+
+/* ---------- Луч прожектора (чистый CSS) ---------- */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.beam {
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  width: 70vw;
+  max-width: 900px;
+  height: 115%;
+  transform: translateX(-50%);
+  transform-origin: 50% 0;
+  animation: beamSway 9s ease-in-out infinite alternate;
+  will-change: transform;
+  background: radial-gradient(
+    120% 85% at 50% 0%,
+    rgba(124, 92, 255, 0.42) 0%,
+    rgba(124, 92, 255, 0.16) 34%,
+    rgba(124, 92, 255, 0.04) 60%,
+    transparent 78%
+  );
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0% 100%);
+  filter: blur(6px);
+}
+
+/* Яркая «лампа» в вершине луча */
+.beam::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 120px;
+  height: 60px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 185, 255, 0.9) 0%, rgba(124, 92, 255, 0.4) 45%, transparent 70%);
+  filter: blur(4px);
+}
+
+/* Лёгкие «пылинки в свете» — тихий дрейф, только внутри луча */
+.dust {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 60vw;
+  max-width: 760px;
+  height: 100%;
+  transform: translateX(-50%);
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0% 100%);
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(179, 154, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 65% 50%, rgba(179, 154, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(179, 154, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 80% 80%, rgba(179, 154, 255, 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 50% 20%, rgba(179, 154, 255, 0.5), transparent);
+  opacity: 0.8;
+  animation: dustFloat 11s ease-in-out infinite alternate;
+}
+
+@keyframes dustFloat {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-18px); }
+}
+
+/* Маятник луча: ±6° на десктопе, ±4° на мобиле. Вместе с пылинками —
+   один «слой света»; вторая бесконечная анимация экрана — лента. */
+@keyframes beamSway {
+  from { transform: translateX(-50%) rotate(-6deg); }
+  to { transform: translateX(-50%) rotate(6deg); }
+}
+
+@media (max-width: 1023px) {
+  .beam { animation-name: beamSwayMobile; }
+  /* Пылинки — только десктоп (pointer: fine, ширина от 1024px) */
+  .dust { display: none; }
+}
+
+@keyframes beamSwayMobile {
+  from { transform: translateX(-50%) rotate(-4deg); }
+  to { transform: translateX(-50%) rotate(4deg); }
+}
+
+/* ---------- Контент ---------- */
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.over { margin-bottom: var(--sp-4); }
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 1.2rem + 5.4vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+}
+
+.lead {
+  margin-top: var(--sp-6);
+  max-width: 52ch;
+  font-size: var(--fs-body-l);
+  color: var(--text-2);
+}
+
+.actions {
+  margin-top: var(--sp-8);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
   justify-content: center;
-  margin-top: 23.14815vh;
 }
 
-.title__hero {
-  font-size: min(10.41667vw, 18.51852vh);
-  color: #ffff;
-  text-shadow: 0px 0px 31.3px #6366f1;
-  transform: matrix(1, 0, 0.02, 1, 0, 0);
-  line-height: 21.66667vh;
-  font-family: "Hayate-Regular";
-  font-style: normal;
-  font-weight: 900;
+.primary,
+.secondary {
+  cursor: pointer;
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 16px 28px;
+  border-radius: var(--r-control);
+  transition: background var(--dur-fast) ease, box-shadow var(--dur-fast) ease,
+    border-color var(--dur-fast) ease, transform var(--dur-fast) ease;
 }
 
-.text__hero {
-  color: #ffff;
-  transform: matrix(1, 0, 0.02, 1, 0, 0);
-  font-size: min(2.60417vw, 4.62963vh);
-  line-height: 5.46296vh;
-  font-family: "Roboto";
-  font-style: normal;
-  font-weight: 600;
+.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.primary:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--glow);
+}
+
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.secondary:hover { border-color: var(--accent); }
+
+.playIcon { color: var(--accent); font-size: 0.9em; }
+
+/* ---------- Факты-одометр ---------- */
+.stats {
+  margin: 0;
+  margin-top: var(--sp-12);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-6) 0;
+}
+
+.stat {
+  position: relative;
+  padding: 0 var(--sp-6);
+  max-width: 280px;
+}
+
+.stat + .stat::before {
+  content: "";
   position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 70%;
+  width: 1px;
+  background: var(--line);
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+  color: var(--text);
+}
+
+.statLabel {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+/* ---------- Розовая лента чемпионатов ---------- */
+.ticker {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-top: var(--sp-16);
+  padding: 8px 0;
+  overflow: hidden;
+}
+
+/* Наклонная розовая полоса-«бандана» — скос только здесь */
+.ticker::before {
+  content: "";
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  top: 0;
+  bottom: 0;
+  background: var(--hot);
+  transform: rotate(-1.8deg);
+  transform-origin: center;
+}
+
+.tickerTrack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  padding: 14px 0;
+  animation: tickerMove 40s linear infinite;
+}
+
+.tickerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: 0 var(--sp-8);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  color: #0a0a0f;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tickerDot { color: rgba(10, 10, 15, 0.5); font-size: 0.8em; }
+
+@keyframes tickerMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 600px) {
+  .stats { gap: var(--sp-4); }
+  .stat { min-width: 44%; padding: 0 var(--sp-3); }
+  .stat + .stat::before { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam { animation: none; }
+  .dust { animation: none; }
+  .tickerTrack { animation: none; }
 }

@@ -1,22 +1,17 @@
 import React from "react";
-import { ParticleCanvas } from "../shared/ui/Canvas/ParticleCanvas";
 import Header from "../widget/Header/ui/Header.jsx";
-import logo from "../shared/img/logo.png";
-import ReviewsSection from "../widget/Reviews/ReviewsSection.jsx"; // Импортируем компонент отзывов
+import Contact from "../widget/Contact/ui/Contact.jsx";
+import ReviewsSection from "../widget/Reviews/ReviewsSection.jsx";
+import pageStyles from "../shared/styles/page.module.css";
 
 const Reviews = () => {
   return (
     <div>
-      <ParticleCanvas className="background" />
-      <Header
-        text={[
-          { img: logo, link: "/" },
-          { page: "Галерея", link: "/gallery" },
-          { page: "Команды", link: "/teams" },
-          { page: "Отзывы", link: "/reviews" },
-        ]}
-      />
-      <ReviewsSection />
+      <Header />
+      <main className={pageStyles.page}>
+        <ReviewsSection />
+      </main>
+      <Contact />
     </div>
   );
 };
