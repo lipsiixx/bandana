@@ -78,8 +78,8 @@ async function up({ context: sequelize }) {
     const passwordHash = await bcrypt.hash(process.env.ADMIN_OWNER_PASSWORD, 10);
     await q(
       `
-      INSERT INTO "admin_users" ("id", "email", "password_hash", "name", "created_at", "updated_at")
-      VALUES (:id, :email, :passwordHash, :name, NOW(), NOW());
+      INSERT INTO "admin_users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at")
+      VALUES (:id, :email, :passwordHash, :name, 'owner', NOW(), NOW());
       `,
       {
         replacements: {
