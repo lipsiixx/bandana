@@ -10,12 +10,16 @@ const AdminActivity = require("../models/admin_activity");
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 дней — как в тексте инвайта в макете
 
-async function verifyCredentials(email, password) {
-  if (!email || !password) return null;
-  const user = await AdminUser.findOne({ where: { email: String(email).trim().toLowerCase() } });
-  if (!user) return null;
-  const ok = await bcrypt.compare(password, user.password_hash);
-  return ok ? user : null;
+// Вход только по паролю (без email) — перебираем аккаунты и ищем, чей
+// password_hash подходит. Все аккаунты равноправны, поэтому этого достаточно
+// для однозначной идентификации (пароли у разных людей разные).
+async function verifyCredentials(password) {
+  if (!password) return null;
+  const users = await AdminUser.findAll();
+  for (const user of users) {
+    if (await bcrypt.compare(password, user.password_hash)) return user;
+  }
+  return null;
 }
 
 function hashToken(token) {

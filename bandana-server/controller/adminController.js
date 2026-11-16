@@ -61,11 +61,11 @@ class AdminController {
 
   async login(req, res) {
     try {
-      const { email, password } = req.body;
-      const user = await verifyCredentials(email, password);
+      const { password } = req.body;
+      const user = await verifyCredentials(password);
 
       if (!user) {
-        return res.status(401).json({ success: false, message: "Неверный email или пароль" });
+        return res.status(401).json({ success: false, message: "Неверный пароль" });
       }
 
       await user.update({ last_login_at: new Date() });

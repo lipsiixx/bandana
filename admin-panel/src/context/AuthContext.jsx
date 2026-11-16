@@ -15,8 +15,8 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  async function login(email, password) {
-    const res = await authApi.login(email, password);
+  async function login(password) {
+    const res = await authApi.login(password);
     setAdmin(res.admin);
   }
 
