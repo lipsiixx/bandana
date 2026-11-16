@@ -28,7 +28,6 @@ const MENU = {
   ],
   4: [
     // Управление отзывами (исправлено!)
-    { text: "📋 Список отзывов", action: "list_reviews" },
     { text: "🔄 Модерация", action: "moderate_reviews" },
     { text: "🚫 Заблокированные", action: "blocked_users" },
     { text: "🔧 Вкл/Выкл отзывы", action: "reviews_toggle" },
@@ -126,9 +125,6 @@ async function handleEventCallback(ctx) {
       return ctx.scene.enter("delete_master_class");
 
     case "moderate_reviews":
-      return ctx.scene.enter("review_moderation");
-
-    case "list_reviews":
       return ctx.scene.enter("review_moderation");
 
     case "blocked_users":

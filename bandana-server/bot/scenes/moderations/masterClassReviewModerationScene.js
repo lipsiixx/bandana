@@ -2,11 +2,7 @@ const { Scenes, Markup } = require("telegraf");
 const Review = require("../../../models/review");
 const { Op } = require("sequelize");
 const axios = require("axios");
-
-function escapeMarkdown(text) {
-  if (!text) return text;
-  return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
-}
+const { escapeMarkdown } = require("../../helpers/markdown");
 
 function formatRating(rating) {
   return "★".repeat(rating) + "☆".repeat(5 - rating);
@@ -41,11 +37,17 @@ async function clearCurrent(ctx) {
 async function notifyUserViaAPI(cookieId, message, type) {
   try {
     const API_URL = process.env.PUBLIC_URL || "http://localhost:5000";
-    await axios.post(`${API_URL}/api/notify-user`, {
-      cookie_id: cookieId,
-      message: message,
-      type: type,
-    });
+    await axios.post(
+      `${API_URL}/api/notify-user`,
+      {
+        cookie_id: cookieId,
+        message: message,
+        type: type,
+      },
+      {
+        headers: { "X-Internal-Secret": process.env.INTERNAL_API_SECRET },
+      },
+    );
     console.log(`[NOTIFY] Sent to API: ${type} for cookie ${cookieId}`);
   } catch (err) {
     console.error("[NOTIFY] API error:", err.message);
@@ -57,7 +59,6 @@ async function showReview(ctx) {
   const sessionData = ctx.session[sessionKey];
 
   if (!sessionData) {
-    console.log("No session data in showReview");
     return ctx.scene.leave();
   }
 
@@ -130,8 +131,6 @@ ${review.ip_address ? `🌐 *IP:* ${review.ip_address}` : ""}`;
     ctx.session[sessionKey].sentMessages = [];
   }
   ctx.session[sessionKey].sentMessages.push(msg.message_id);
-
-  console.log("Review shown, session preserved");
 }
 
 const reviewModerationScene = new Scenes.WizardScene(
@@ -139,7 +138,6 @@ const reviewModerationScene = new Scenes.WizardScene(
 
   // Шаг 0 - вход в сцену
   async (ctx) => {
-    console.log("=== ENTERING MODERATION SCENE ===");
     const userId = ctx.from.id;
     const sessionKey = `review_moderation_${userId}`;
 
@@ -162,8 +160,6 @@ const reviewModerationScene = new Scenes.WizardScene(
       order: [["submitted_at", "ASC"]],
     });
 
-    console.log(`Found pending reviews: ${pending.length}`);
-
     if (pending.length === 0) {
       const msg = await ctx.reply("✅ Нет отзывов на модерации");
       ctx.session[sessionKey].sentMessages.push(msg.message_id);
@@ -183,13 +179,10 @@ const reviewModerationScene = new Scenes.WizardScene(
 
   // Шаг 1 - обработка действий
   async (ctx) => {
-    console.log("=== STEP 1 - Processing action ===");
-
     const sessionKey = `review_moderation_${ctx.from.id}`;
     const sessionData = ctx.session[sessionKey];
 
     if (!sessionData || !sessionData.active) {
-      console.log("ERROR: session data is missing!");
       await ctx.reply("❌ Ошибка сессии. Пожалуйста, начните заново: /reviews");
       return ctx.scene.leave();
     }
@@ -203,7 +196,6 @@ const reviewModerationScene = new Scenes.WizardScene(
     }
 
     const action = ctx.callbackQuery.data;
-    console.log("Action:", action);
 
     try {
       await ctx.answerCbQuery();
@@ -213,7 +205,6 @@ const reviewModerationScene = new Scenes.WizardScene(
     let reviews = sessionData.reviews;
 
     if (!reviews || reviews.length === 0) {
-      console.log("Reviews array is empty!");
       await ctx.reply("❌ Список отзывов пуст");
       delete ctx.session[sessionKey];
       await clearMessages(ctx);
@@ -227,7 +218,6 @@ const reviewModerationScene = new Scenes.WizardScene(
 
     const currentReview = reviews[idx];
     if (!currentReview) {
-      console.log("Current review not found!");
       await ctx.reply("❌ Отзыв не найден");
       return ctx.scene.leave();
     }
@@ -333,8 +323,6 @@ const reviewModerationScene = new Scenes.WizardScene(
 
   // Шаг 2 - обработка отклонения с уведомлением пользователя
   async (ctx) => {
-    console.log("=== STEP 2 - Reject handler with notification ===");
-
     const sessionKey = `review_moderation_${ctx.from.id}`;
     const sessionData = ctx.session[sessionKey];
 
@@ -389,8 +377,6 @@ const reviewModerationScene = new Scenes.WizardScene(
 
   // Шаг 3 - обработка блокировки с уведомлением пользователя
   async (ctx) => {
-    console.log("=== STEP 3 - Block handler with notification ===");
-
     const sessionKey = `review_moderation_${ctx.from.id}`;
     const sessionData = ctx.session[sessionKey];
 
@@ -460,7 +446,6 @@ const reviewModerationScene = new Scenes.WizardScene(
 );
 
 reviewModerationScene.leave(async (ctx) => {
-  console.log("=== LEAVING MODERATION SCENE ===");
   const sessionKey = `review_moderation_${ctx.from.id}`;
   delete ctx.session[sessionKey];
   await clearMessages(ctx);

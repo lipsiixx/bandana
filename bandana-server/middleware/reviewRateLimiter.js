@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { Op } = require("sequelize");
 const Review = require("../models/review");
+const { signCookie, verifyCookie } = require("../services/cookieService");
 
 const RATE_LIMIT_CONFIG = {
   maxReviews: 3, // 3 отзыва в час
@@ -8,31 +9,6 @@ const RATE_LIMIT_CONFIG = {
   blockDays: 60, // блокировка на 60 дней
   checkDuplicates: true, // проверка дубликатов (один пользователь - один отзыв на МК)
 };
-
-const COOKIE_SECRET =
-  process.env.COOKIE_SECRET || "my-super-secret-key-change-it";
-
-function signCookie(value) {
-  const signature = crypto
-    .createHmac("sha256", COOKIE_SECRET)
-    .update(value)
-    .digest("hex");
-  return `${value}.${signature}`;
-}
-
-function verifyCookie(signedValue) {
-  if (!signedValue) return null;
-  const lastDotIndex = signedValue.lastIndexOf(".");
-  if (lastDotIndex === -1) return null;
-  const value = signedValue.substring(0, lastDotIndex);
-  const signature = signedValue.substring(lastDotIndex + 1);
-  const expectedSignature = crypto
-    .createHmac("sha256", COOKIE_SECRET)
-    .update(value)
-    .digest("hex");
-  if (signature !== expectedSignature) return null;
-  return value;
-}
 
 function getCleanIP(req) {
   let ip =
@@ -58,10 +34,19 @@ const reviewRateLimiter = async (req, res, next) => {
     const ipAddress = getCleanIP(req);
     const userAgent = req.headers["user-agent"] || "unknown";
 
-    // ==================== ПРОВЕРКА БЛОКИРОВКИ (только по cookie) ====================
+    // Идентификация по cookie и, если доступен, по IP — чтобы нельзя было
+    // обойти блокировку и лимит простой чисткой cookie
+    const identityWhere = [
+      { cookie_id: cookieId },
+      ...(ipAddress && ipAddress !== "unknown"
+        ? [{ ip_address: ipAddress }]
+        : []),
+    ];
+
+    // ==================== ПРОВЕРКА БЛОКИРОВКИ (по cookie и IP) ====================
     const blockedUser = await Review.findOne({
       where: {
-        cookie_id: cookieId,
+        [Op.or]: identityWhere,
         is_blocked: true,
         blocked_at: {
           [Op.gt]: new Date(
@@ -83,13 +68,13 @@ const reviewRateLimiter = async (req, res, next) => {
       });
     }
 
-    // ==================== ПРОВЕРКА ЛИМИТА ОТЗЫВОВ (3 В ЧАС по cookie) ====================
+    // ==================== ПРОВЕРКА ЛИМИТА ОТЗЫВОВ (3 В ЧАС по cookie и IP) ====================
     const timeAgo = new Date(
       Date.now() - RATE_LIMIT_CONFIG.timeWindowHours * 60 * 60 * 1000,
     );
     const recentReviews = await Review.count({
       where: {
-        cookie_id: cookieId,
+        [Op.or]: identityWhere,
         submitted_at: { [Op.gte]: timeAgo },
         status: { [Op.in]: ["pending", "approved"] },
       },
@@ -145,10 +130,11 @@ const reviewRateLimiter = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Rate limit error:", err);
-    req.cookieId = req.cookies?.visitor_id || crypto.randomUUID();
-    req.ipAddress = getCleanIP(req);
-    req.userAgent = req.headers["user-agent"] || "unknown";
-    next();
+    // Fail-closed: при ошибке БД/проверки не пропускаем запрос без проверок
+    return res.status(503).json({
+      success: false,
+      message: "Сервис временно недоступен, попробуйте позже",
+    });
   }
 };
 

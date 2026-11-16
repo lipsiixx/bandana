@@ -96,6 +96,29 @@ const Review = sequelize.define(
   },
   {
     tableName: "MasterClassReviews",
+    // Продублировано в migrations/0002-review-indexes.js (источник истины
+    // для реальной БД — эти индексы здесь только для dev-синка/документации).
+    indexes: [
+      { name: "idx_master_class_reviews_cookie_id", fields: ["cookie_id"] },
+      { name: "idx_master_class_reviews_ip_address", fields: ["ip_address"] },
+      { name: "idx_master_class_reviews_status", fields: ["status"] },
+      {
+        name: "idx_master_class_reviews_submitted_at",
+        fields: ["submitted_at"],
+      },
+      {
+        name: "idx_master_class_reviews_mc_status_submitted",
+        fields: ["master_class_id", "status", "submitted_at"],
+      },
+      {
+        name: "idx_master_class_reviews_cookie_submitted",
+        fields: ["cookie_id", "submitted_at"],
+      },
+      {
+        name: "idx_master_class_reviews_cookie_blocked",
+        fields: ["cookie_id", "is_blocked", "blocked_at"],
+      },
+    ],
   },
 );
 

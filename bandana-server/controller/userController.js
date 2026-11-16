@@ -2,6 +2,8 @@ require("dotenv").config();
 const path = require("path");
 const bot = require("../bot/bot");
 const { Op } = require("sequelize");
+const { signCookie, verifyCookie } = require("../services/cookieService");
+const { escapeMarkdown } = require("../bot/helpers/markdown");
 
 const Events = require("../models/events");
 const Gallery = require("../models/gallery");
@@ -10,6 +12,7 @@ const Teams = require("../models/teams");
 const Review = require("../models/review");
 const MasterClasses = require("../models/master_classes");
 const Notification = require("../models/notification");
+const AboutContent = require("../models/about_content");
 
 const BASE_URL = process.env.PUBLIC_URL;
 
@@ -19,6 +22,36 @@ const cleanFile = (file) =>
     : `${BASE_URL}/uploads/${path.basename(file || "")}`;
 
 class UserController {
+  // Блок «О себе» — отдаёт только опубликованную версию (черновик из
+  // конструктора веб-админки сюда не попадает). Пусто, если ещё не
+  // опубликовано — клиент должен скрывать блок, а не показывать заглушку.
+  async getAbout(req, res) {
+    try {
+      const about = await AboutContent.findByPk(1);
+      if (!about || !about.published) {
+        return res.json({ success: true, data: null });
+      }
+      res.json({
+        success: true,
+        data: {
+          heading: about.heading,
+          body: about.body,
+          font: about.font,
+          highlightColor: about.highlight_color,
+          fileUrl: about.file_url ? cleanFile(about.file_url) : null,
+          brightness: about.brightness,
+          contrast: about.contrast,
+          warmth: about.warmth,
+          zoom: about.zoom,
+          focusX: about.focus_x,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: "Ошибка получения блока «О себе»" });
+    }
+  }
+
   async getEvents(req, res) {
     try {
       const events = await Events.findAll({
@@ -68,7 +101,11 @@ class UserController {
       res.json({ success: true, data: filters });
     } catch (error) {
       console.error(error);
-      res.json({ success: true, data: ["Все"] });
+      // Раньше тут маскировали ошибку под success:true — фронт сам
+      // решает, какой фолбэк показать при реальном сбое БД
+      res
+        .status(500)
+        .json({ success: false, message: "Не удалось загрузить фильтры" });
     }
   }
 
@@ -210,16 +247,22 @@ class UserController {
       });
 
       // Отправка уведомления админам
+      // Пользовательский ввод (имя, текст) эскейпим — иначе он может
+      // сломать Markdown-разметку сообщения
       const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+      const safeAuthorName = escapeMarkdown(author_name);
+      const safeContent = escapeMarkdown(
+        content.substring(0, 200) + (content.length > 200 ? "..." : ""),
+      );
       const notificationText = `
 📝 *НОВЫЙ ОТЗЫВ НА МОДЕРАЦИЮ!*
 
-👤 *Автор:* ${author_name}
+👤 *Автор:* ${safeAuthorName}
 ⭐ *Оценка:* ${stars} (${rating}/5)
 🎭 *Событие:* ${event.name}
 📅 *Дата события:* ${event.event_date || "не указана"}
-💬 *Текст:* 
-${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
+💬 *Текст:*
+${safeContent}
 
 🆔 *ID отзыва:* ${review.id}
 
@@ -315,8 +358,6 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
         where: { is_archived: false }, // ← Важно! Показываем только неархивные
         order: [["event_date", "DESC"]],
       });
-
-      console.log("Found master classes:", masterClasses.length); // Для отладки
 
       res.json({
         success: true,
@@ -463,11 +504,13 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
       });
 
       // Отправка уведомления админам
+      // author_name — пользовательский ввод, эскейпим перед вставкой в Markdown
       const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+      const safeAuthorName = escapeMarkdown(author_name);
       const notificationText = `
 📝 *НОВЫЙ ОТЗЫВ НА МОДЕРАЦИЮ!*
 
-👤 *Автор:* ${author_name}
+👤 *Автор:* ${safeAuthorName}
 ⭐ *Оценка:* ${stars} (${rating}/5)
 🎓 *Мастер-класс:* ${masterClass.name}
 📅 *Дата:* ${masterClass.event_date || "не указана"}
@@ -519,6 +562,14 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
         });
       }
 
+      // Условие по идентичности: cookie_id всегда есть, ip_address добавляем
+      // в Op.or только если он непустой — иначе Sequelize делает
+      // "ip_address IS NULL" и матчит чужие записи без IP
+      const identityWhere = [
+        ...(review.cookie_id ? [{ cookie_id: review.cookie_id }] : []),
+        ...(review.ip_address ? [{ ip_address: review.ip_address }] : []),
+      ];
+
       // Блокируем пользователя
       await Review.update(
         {
@@ -529,10 +580,7 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
         },
         {
           where: {
-            [Op.or]: [
-              { cookie_id: review.cookie_id },
-              { ip_address: review.ip_address },
-            ],
+            [Op.or]: identityWhere,
           },
         },
       );
@@ -545,10 +593,7 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
         },
         {
           where: {
-            [Op.or]: [
-              { cookie_id: review.cookie_id },
-              { ip_address: review.ip_address },
-            ],
+            [Op.or]: identityWhere,
             status: "pending",
           },
         },
@@ -628,35 +673,9 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
   async refreshCookie(req, res) {
     try {
       const crypto = require("crypto");
-      const COOKIE_SECRET =
-        process.env.COOKIE_SECRET || "my-super-secret-key-change-it";
 
-      function signCookie(value) {
-        const signature = crypto
-          .createHmac("sha256", COOKIE_SECRET)
-          .update(value)
-          .digest("hex");
-        return `${value}.${signature}`;
-      }
-
-      let cookieId = req.cookies?.visitor_id;
-      let rawId = null;
-
-      if (cookieId) {
-        // Проверяем подпись существующей куки
-        const lastDotIndex = cookieId.lastIndexOf(".");
-        if (lastDotIndex !== -1) {
-          const value = cookieId.substring(0, lastDotIndex);
-          const signature = cookieId.substring(lastDotIndex + 1);
-          const expectedSignature = crypto
-            .createHmac("sha256", COOKIE_SECRET)
-            .update(value)
-            .digest("hex");
-          if (signature === expectedSignature) {
-            rawId = value;
-          }
-        }
-      }
+      const signedCookieIn = req.cookies?.visitor_id;
+      let rawId = signedCookieIn ? verifyCookie(signedCookieIn) : null;
 
       if (!rawId) {
         rawId = crypto.randomUUID();
@@ -712,26 +731,13 @@ ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}
   // Получить непрочитанные уведомления текущего посетителя (по подписанной куке)
   async getNotifications(req, res) {
     try {
-      const crypto = require("crypto");
-      const COOKIE_SECRET =
-        process.env.COOKIE_SECRET || "my-super-secret-key-change-it";
-
       const signedCookie = req.cookies?.visitor_id;
       if (!signedCookie) {
         return res.json({ success: true, data: [] });
       }
 
-      const lastDotIndex = signedCookie.lastIndexOf(".");
-      if (lastDotIndex === -1) {
-        return res.json({ success: true, data: [] });
-      }
-      const cookieId = signedCookie.substring(0, lastDotIndex);
-      const signature = signedCookie.substring(lastDotIndex + 1);
-      const expectedSignature = crypto
-        .createHmac("sha256", COOKIE_SECRET)
-        .update(cookieId)
-        .digest("hex");
-      if (signature !== expectedSignature) {
+      const cookieId = verifyCookie(signedCookie);
+      if (!cookieId) {
         return res.json({ success: true, data: [] });
       }
 

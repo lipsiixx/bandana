@@ -1,6 +1,7 @@
 const { Telegraf, Scenes, session, Markup } = require("telegraf");
 require("dotenv").config();
 
+const { buildTelegramAgent } = require("./utils/telegramProxyAgent");
 const { showMenu, handleEventCallback } = require("./helpers/menu");
 
 const startCommand = require("./commands/start");
@@ -9,6 +10,7 @@ const galleryCommand = require("./commands/gallery");
 const teamCommand = require("./commands/team");
 const reviewsCommands = require("./commands/reviews");
 const masterclassesCommand = require("./commands/masterclasses");
+const passwordCommand = require("./commands/password");
 
 // Сцены
 const createEventScene = require("./scenes/events/createEventScene");
@@ -32,13 +34,17 @@ const updateMasterClassScene = require("./scenes/master_classes/updateMasterClas
 const deleteMasterClassScene = require("./scenes/master_classes/deleteMasterClassScene");
 
 const reviewModerationScene = require("./scenes/moderations/masterClassReviewModerationScene");
-const reviewListScene = require("./scenes/moderations/masterClassReviewModerationScene"); // новая сцена для списка отзывов
+const changePasswordScene = require("./scenes/admin/changePasswordScene");
 
 // Модели
 const Events = require("../models/events");
 const Review = require("../models/review");
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const telegramAgent = buildTelegramAgent();
+const bot = new Telegraf(
+  process.env.BOT_TOKEN,
+  telegramAgent ? { telegram: { agent: telegramAgent } } : {},
+);
 
 // ==================== Stage и сцены ====================
 const stage = new Scenes.Stage([
@@ -58,12 +64,12 @@ const stage = new Scenes.Stage([
   updateMasterClassScene,
   deleteMasterClassScene,
   reviewModerationScene,
-  reviewListScene, // добавили
+  changePasswordScene,
 ]);
 
 // Обработчик навигационных действий внутри сцен
 stage.action(
-  /create_event|update_event|delete_event|add_photo|update_photo|delete_photo|add_video|update_video|delete_video|add_team|update_team|delete_team|moderate|reviews_toggle|create_master_class|update_master_class|delete_master_class|list_reviews|blocked_users/,
+  /create_event|update_event|delete_event|add_photo|update_photo|delete_photo|add_video|update_video|delete_video|add_team|update_team|delete_team|moderate|reviews_toggle|create_master_class|update_master_class|delete_master_class|blocked_users/,
   handleEventCallback,
 );
 
@@ -103,6 +109,7 @@ bot.use(async (ctx, next) => {
     "team",
     "reviews",
     "masterclasses",
+    "password",
   ];
 
   if (GLOBAL_COMMANDS.includes(command)) {
@@ -120,6 +127,8 @@ bot.use(async (ctx, next) => {
         return ctx.scene.enter("review_moderation");
       case "masterclasses":
         return showMenu(ctx, 5, "🎓 Управление мастер-классами:");
+      case "password":
+        return ctx.scene.enter("change_admin_password");
     }
   }
 
@@ -136,17 +145,6 @@ bot.action("moderate_reviews", async (ctx) => {
   } catch (err) {
     console.error("Error entering moderation:", err);
     await ctx.reply("❌ Ошибка при открытии модерации");
-  }
-});
-
-// Показать список отзывов (с пагинацией)
-bot.action("list_reviews", async (ctx) => {
-  try {
-    await ctx.answerCbQuery();
-    await ctx.scene.enter("review_list");
-  } catch (err) {
-    console.error("Error entering review list:", err);
-    await ctx.reply("❌ Ошибка при открытии списка отзывов");
   }
 });
 
@@ -355,5 +353,6 @@ galleryCommand(bot);
 teamCommand(bot);
 reviewsCommands(bot);
 masterclassesCommand(bot);
+passwordCommand(bot);
 
 module.exports = bot;

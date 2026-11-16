@@ -1,0 +1,41 @@
+/* Дизайн-токены bandana admin — то же «Свет на сцене», что и на публичном
+   сайте (тёмная сцена + фиолетовый акцент + розовая лента/бейджи), но
+   отдельная палитра под плотный UI админки. См. CLAUDE.md публичного сайта
+   для исходной концепции. */
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #17171f;
+  --surface-3: #0f0f16;
+  --border: #1f1f2b;
+  --border-strong: #2a2a3a;
+  --text: #ececf3;
+  --text-dim: #a3a3b8;
+  --text-faint: #8b8ba0;
+
+  --accent: #7c5cff;
+  --accent-hover: #8d72ff;
+  --accent-soft-bg: #1d1833;
+  --accent-soft-border: #3b3170;
+  --accent-soft-text: #c9bcff;
+
+  --pink: #ff3d8b;
+
+  --danger: #ff9aa8;
+  --danger-bg: #3a1424;
+  --danger-border: #4a2330;
+  --danger-solid: #c42a5f;
+
+  --success: #7fe0a8;
+  --success-bg: #13261d;
+  --success-border: #1f2e26;
+
+  --warning: #ffc66b;
+  --warning-bg: #33270f;
+  --warning-border: #3a2e14;
+
+  --font-body: "Manrope", system-ui, -apple-system, sans-serif;
+  --font-heading: "Unbounded", sans-serif;
+
+  color-scheme: dark;
+}

@@ -7,6 +7,7 @@ module.exports = (bot) => {
       Markup.keyboard([
         ["events", "gallery", "video"],
         ["team", "reviews", "masterclasses"],
+        ["password"],
       ]).resize(),
     );
   });
@@ -17,6 +18,7 @@ module.exports = (bot) => {
       Markup.keyboard([
         ["events", "gallery", "video"],
         ["team", "reviews", "masterclasses"],
+        ["password"],
       ]).resize(),
     );
   });

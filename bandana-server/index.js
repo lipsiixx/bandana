@@ -9,22 +9,23 @@ const rateLimit = require("express-rate-limit");
 const slowDown = require("express-slow-down");
 
 const sequelize = require("./config/db");
+const { runMigrations } = require("./migrate");
 
-// Импортируем модели в правильном порядке (сначала родительские, потом дочерние)
+// Модели для ассоциаций ниже (остальные модели подключают сами контроллеры/сцены бота —
+// схему БД эти require'ы больше не создают, см. migrations/)
 const MasterClasses = require("./models/master_classes");
-const Events = require("./models/events");
-const Gallery = require("./models/gallery");
-const Video = require("./models/video");
-const Teams = require("./models/teams");
 const Review = require("./models/review");
-const Notification = require("./models/notification");
 
 // Импортируем остальные зависимости
 const { startMessageMonitor } = require("./bot/utils/messageMonitor");
 const router = require("./routes/router");
+const adminRouter = require("./routes/adminRouter");
 const bot = require("./bot/bot");
 
 const app = express();
+// За приложением стоит nginx — доверяем одному хопу прокси,
+// чтобы req.ip брал реальный IP клиента из X-Forwarded-For
+app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT) || 5000;
 
 /* ============================================================
@@ -97,12 +98,16 @@ app.use(
 /* ============================================================
 MIDDLEWARE
 ============================================================ */
-app.use(express.json({ limit: "50mb" }));
+// JSON-тело ограничено — крупные файлы идут отдельными multipart-эндпоинтами
+// /api/admin/upload/* (middleware/upload.js), не через этот парсер
+app.use(express.json({ limit: "200kb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Логирование запросов
+// Логирование запросов (только вне продакшена — в проде это лишний шум в логах)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  }
   next();
 });
 
@@ -110,6 +115,7 @@ app.use((req, res, next) => {
 ROUTES
 ============================================================ */
 app.use("/api", router);
+app.use("/api/admin", adminRouter);
 
 // Обработка 404
 app.use((req, res) => {
@@ -129,44 +135,31 @@ app.use((err, req, res, next) => {
 });
 
 /* ============================================================
-ФУНКЦИЯ ДЛЯ ПРОВЕРКИ И ДОБАВЛЕНИЯ КОЛОНОК
+TELEGRAM BOT LAUNCH (с ретраями — прокси до Telegram API нестабилен,
+единичный сбой getMe внутри launch() не должен навсегда убивать polling)
 ============================================================ */
-async function addMissingColumns() {
-  try {
-    // Проверяем и добавляем колонку is_archived в таблицу Events
-    const [results] = await sequelize.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'Events' AND column_name = 'is_archived'
-    `);
-
-    if (results.length === 0) {
-      console.log("📝 Добавляем колонку is_archived в таблицу Events...");
-      await sequelize.query(`
-        ALTER TABLE "Events" 
-        ADD COLUMN "is_archived" BOOLEAN DEFAULT false
-      `);
-      console.log("✅ Колонка is_archived добавлена");
+function launchBotWithRetry(bot, maxAttempts = 5, delayMs = 3000) {
+  (async () => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // launch() резолвится только после bot.stop() — не await'им это в start(),
+        // просто ждём, что вызов не упадёт с ошибкой на старте (getMe/getUpdates)
+        await bot.launch();
+        console.log("✅ Telegram bot started");
+        return;
+      } catch (err) {
+        console.error(
+          `❌ Telegram bot launch attempt ${attempt}/${maxAttempts} failed:`,
+          err.message,
+        );
+        if (attempt === maxAttempts) {
+          console.error("❌ Telegram bot failed to start after all retries");
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
-
-    // Проверяем и добавляем колонку reviews_enabled в таблицу Events
-    const [results2] = await sequelize.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'Events' AND column_name = 'reviews_enabled'
-    `);
-
-    if (results2.length === 0) {
-      console.log("📝 Добавляем колонку reviews_enabled в таблицу Events...");
-      await sequelize.query(`
-        ALTER TABLE "Events" 
-        ADD COLUMN "reviews_enabled" BOOLEAN DEFAULT true
-      `);
-      console.log("✅ Колонка reviews_enabled добавлена");
-    }
-  } catch (error) {
-    console.error("Ошибка при добавлении колонок:", error);
-  }
+  })();
 }
 
 /* ============================================================
@@ -177,63 +170,15 @@ async function start() {
     await sequelize.authenticate();
     console.log("✅ PostgreSQL connected");
 
-    // Создаем таблицы в правильном порядке
-    console.log("📝 Создание таблиц...");
-
-    // Сначала создаем родительские таблицы
-    await MasterClasses.sync({ alter: true });
-    console.log("✅ MasterClasses table ready");
-
-    await Events.sync({ alter: true });
-    console.log("✅ Events table ready");
-
-    await Gallery.sync({ alter: true });
-    console.log("✅ Gallery table ready");
-
-    await Video.sync({ alter: true });
-    console.log("✅ Video table ready");
-
-    await Teams.sync({ alter: true });
-    console.log("✅ Teams table ready");
-
-    await Notification.sync({ alter: true });
-    console.log("✅ Notifications table ready");
-
-    // Добавляем недостающие колонки
-    await addMissingColumns();
-
-    // Создаем дочерние таблицы (без внешних ключей сначала)
-    await Review.sync({ alter: true });
-    console.log("✅ Reviews table ready");
-
-    // Добавляем внешний ключ если его нет
-    try {
-      await sequelize.query(`
-        DO $$ 
-        BEGIN
-          IF NOT EXISTS (
-            SELECT 1 FROM information_schema.table_constraints 
-            WHERE constraint_name = 'MasterClassReviews_master_class_id_fkey'
-          ) THEN
-            ALTER TABLE "MasterClassReviews" 
-            ADD CONSTRAINT "MasterClassReviews_master_class_id_fkey" 
-            FOREIGN KEY ("master_class_id") 
-            REFERENCES "MasterClasses"("id") 
-            ON DELETE CASCADE;
-          END IF;
-        END $$;
-      `);
-      console.log("✅ Foreign key constraint added");
-    } catch (error) {
-      console.log("Foreign key already exists or error:", error.message);
-    }
-
-    console.log("✅ Database synced successfully");
+    // Схема БД — через миграции (migrations/*.js, раннер Umzug в ./migrate.js),
+    // а не Model.sync({ alter: true }). Таблица SequelizeMeta хранит, какие
+    // миграции уже применены — повторный запуск безопасен (idempotent).
+    await runMigrations();
+    console.log("✅ Migrations applied");
 
     // Запуск бота
     if (bot && typeof bot.launch === "function") {
-      bot.launch();
-      console.log("✅ Telegram bot started");
+      launchBotWithRetry(bot);
     }
 
     console.log("🔄 Запуск Telegram Message Monitor...");

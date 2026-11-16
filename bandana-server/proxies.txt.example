@@ -1,0 +1,12 @@
+# Прокси для обхода блокировки Telegram API.
+# Общий пул с zynto-bot — на сервере это копия файла /home/user/zynto-bot/proxies.txt.
+# Скопируй в proxies.txt (в корень bandana-server) и впиши свои прокси.
+#
+# Бот использует ПЕРВУЮ валидную строку (не комментарий).
+# Приоритет: переменная окружения TELEGRAM_PROXY важнее этого файла.
+#
+# Форматы (любой из них):
+#   host:port:user:pass                      <- как дают провайдеры (SOCKS5)
+#   host:port                                <- SOCKS5 без авторизации
+#   socks5://user:pass@host:port             <- готовый URL
+#   http://user:pass@host:port               <- HTTP-прокси

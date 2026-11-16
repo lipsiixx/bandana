@@ -4,6 +4,9 @@ const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
 const axios = require("axios");
+const { buildTelegramAgent } = require("../utils/telegramProxyAgent");
+
+const telegramAgent = buildTelegramAgent();
 
 // -------------------------------
 // Папка для загрузок
@@ -20,7 +23,10 @@ async function savePhoto(ctx, fileId) {
   const fileName = `${Date.now()}.jpg`;
   const filePath = path.join(UPLOADS_DIR, fileName);
 
-  const res = await fetch(fileLink.href);
+  const res = await fetch(
+    fileLink.href,
+    telegramAgent ? { agent: telegramAgent } : {},
+  );
   const buffer = Buffer.from(await res.arrayBuffer());
   fs.writeFileSync(filePath, buffer);
 
