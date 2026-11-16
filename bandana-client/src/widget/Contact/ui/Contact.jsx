@@ -5,6 +5,8 @@ import RollerogramButton from "../../../shared/ui/Button/RollerogramButton";
 
 import tg from "../../../shared/svg/tg.svg";
 import vk from "../../../shared/svg/vk.svg";
+import instagram from "../../../shared/svg/instagram.svg";
+import tiktok from "../../../shared/svg/tiktok.svg";
 
 const Contact = () => {
   return (
@@ -48,6 +50,30 @@ const Contact = () => {
             className="bot"
             text="Сообщество школы"
             svg={vk}
+          />
+          <RollerogramButton
+            onClick={() =>
+              window.open(
+                "https://www.instagram.com/mark.bandana?psln=ejJ4eHU0YTJid2Nm",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            className="instagram"
+            text="Instagram"
+            svg={instagram}
+          />
+          <RollerogramButton
+            onClick={() =>
+              window.open(
+                "https://www.tiktok.com/@dancerinbandana?_r=1&_t=ZP-9BSYinbYjkc",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            className="tiktok"
+            text="TikTok"
+            svg={tiktok}
           />
         </div>
       </div>

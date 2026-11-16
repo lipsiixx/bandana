@@ -28,8 +28,11 @@ const Home = () => {
 
       <HeroSerction />
 
-      <Reveal as="section" id="masterclasses">
+      <Reveal as="section" id="events">
         <EventsSection />
+      </Reveal>
+
+      <Reveal as="section" id="masterclasses">
         <MasterCasses />
       </Reveal>
 

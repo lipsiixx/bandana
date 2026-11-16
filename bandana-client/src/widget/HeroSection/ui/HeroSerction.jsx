@@ -10,12 +10,12 @@ const scrollToSection = (id) => {
    Голые годы («2023», «2024») запрещены дизайн-ревью. */
 const STATS = [
   {
-    value: "3 чемпионата России",
+    value: "Участие в крупных чемпионатах России и городских мероприятиях",
     label: "Project 818, Moving Star, «Город танцует в парках»",
   },
   { value: "Ученики — призёры", label: "чемпионатов России" },
   {
-    value: "В танце с 8 лет",
+    value: "В танцах уже 9 лет",
     label: "педагог и хореограф команды «ВотТакМогу»",
   },
 ];
@@ -67,12 +67,27 @@ const HeroSerction = () => {
         </div>
 
         <dl className={styles.stats}>
-          {STATS.map((s) => (
-            <div key={s.value} className={styles.stat}>
-              <dt className={styles.statValue}>{s.value}</dt>
-              <dd className={styles.statLabel}>{s.label}</dd>
-            </div>
-          ))}
+          {STATS.map((s) => {
+            /* Длинные формулировки (напр. «Участие в крупных чемпионатах…»)
+               ломают колонку крупным Unbounded на 5+ строк — для них отдельный
+               модификатор с более широкой колонкой и чуть меньшим кеглем. */
+            const isLong = s.value.length > 40;
+            return (
+              <div
+                key={s.value}
+                className={`${styles.stat} ${isLong ? styles.statLong : ""}`}
+              >
+                <dt
+                  className={`${styles.statValue} ${
+                    isLong ? styles.statValueLong : ""
+                  }`}
+                >
+                  {s.value}
+                </dt>
+                <dd className={styles.statLabel}>{s.label}</dd>
+              </div>
+            );
+          })}
         </dl>
       </div>
 

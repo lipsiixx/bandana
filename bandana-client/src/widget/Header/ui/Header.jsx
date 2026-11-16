@@ -6,6 +6,7 @@ import logo from "../../../shared/img/logo.png";
 /** Пункты меню. type: "anchor" — секция на главной, "route" — отдельная страница. */
 const NAV = [
   { label: "Выступления", target: "performances", type: "anchor" },
+  { label: "События", target: "events", type: "anchor" },
   { label: "Мастер-классы", target: "masterclasses", type: "anchor" },
   { label: "Команды", target: "/teams", type: "route" },
   { label: "Галерея", target: "/gallery", type: "route" },

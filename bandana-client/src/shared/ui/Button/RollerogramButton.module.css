@@ -50,7 +50,9 @@
 /* Соцсети — ровные плашки с иконкой */
 .telegram,
 .vk,
-.bot {
+.bot,
+.instagram,
+.tiktok {
   gap: 12px;
   min-width: 220px;
   justify-content: center;
@@ -61,10 +63,14 @@
 .telegram { background: #2aabee; }
 .telegram:hover { background: #1c93d0; }
 .vk,
-.bot { background: var(--surface-2); border: 1px solid var(--line); }
+.bot,
+.instagram,
+.tiktok { background: var(--surface-2); border: 1px solid var(--line); }
 .vk:hover,
-.bot:hover { background: var(--surface-1); border-color: var(--accent); box-shadow: none; }
+.bot:hover,
+.instagram:hover,
+.tiktok:hover { background: var(--surface-1); border-color: var(--accent); box-shadow: none; }
 
 @media (max-width: 600px) {
-  .telegram, .vk, .bot { width: 100%; }
+  .telegram, .vk, .bot, .instagram, .tiktok { width: 100%; }
 }
