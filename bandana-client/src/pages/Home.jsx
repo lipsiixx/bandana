@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import ModelWindowProject from "../features/ExpandableText/ui/ModelWindowProject.jsx";
 import HeroSerction from "../widget/HeroSection/ui/HeroSerction.jsx";
 import EventsSection from "../widget/Events/EventsSection.jsx";
 import Biography from "../widget/Biography/ui/Biography.jsx";
@@ -26,8 +25,6 @@ const Home = () => {
   return (
     <div>
       <Header />
-
-      <ModelWindowProject />
 
       <HeroSerction />
 

@@ -251,6 +251,17 @@ class ApiService {
     }
   }
 
+  // ==================== О СЕБЕ ====================
+  async getAbout() {
+    try {
+      const response = await api.get("/api/about");
+      return response.data;
+    } catch (err) {
+      console.warn("Блок «о себе» недоступен:", err.message);
+      return { success: false, error: true, data: null };
+    }
+  }
+
   // Уведомления об одобрении/отклонении/блокировке отзыва (для текущего посетителя)
   async getNotifications() {
     try {
