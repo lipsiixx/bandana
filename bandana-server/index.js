@@ -15,6 +15,11 @@ const { runMigrations } = require("./migrate");
 // схему БД эти require'ы больше не создают, см. migrations/)
 const MasterClasses = require("./models/master_classes");
 const Review = require("./models/review");
+const Service = require("./models/service");
+const Order = require("./models/order");
+const OrderFile = require("./models/order_file");
+const OrderMessage = require("./models/order_message");
+const OrderStatusHistory = require("./models/order_status_history");
 
 // Импортируем остальные зависимости
 const { startMessageMonitor } = require("./bot/utils/messageMonitor");
@@ -42,6 +47,22 @@ MasterClasses.hasMany(Review, {
   as: "reviews",
 });
 
+Order.belongsTo(Service, { foreignKey: "service_id", as: "service" });
+Service.hasMany(Order, { foreignKey: "service_id", as: "orders" });
+
+Order.hasMany(OrderFile, { foreignKey: "order_id", as: "files", onDelete: "CASCADE" });
+OrderFile.belongsTo(Order, { foreignKey: "order_id", as: "order" });
+
+Order.hasMany(OrderMessage, { foreignKey: "order_id", as: "messages", onDelete: "CASCADE" });
+OrderMessage.belongsTo(Order, { foreignKey: "order_id", as: "order" });
+
+Order.hasMany(OrderStatusHistory, {
+  foreignKey: "order_id",
+  as: "statusHistory",
+  onDelete: "CASCADE",
+});
+OrderStatusHistory.belongsTo(Order, { foreignKey: "order_id", as: "order" });
+
 /* ============================================================
 SECURITY
 ============================================================ */
@@ -67,7 +88,7 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }),
 );

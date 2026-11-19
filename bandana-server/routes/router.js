@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const UserController = require("../controller/userController");
+const OrderPublicController = require("../controller/orderPublicController");
 const reviewRateLimiter = require("../middleware/reviewRateLimiter");
 const internalAuth = require("../middleware/internalAuth");
+const orderRateLimiter = require("../middleware/orderRateLimiter");
+const orderUploadRateLimiter = require("../middleware/orderUploadRateLimiter");
+const { uploadOrderSourceFiles } = require("../middleware/upload");
 
 // Существующие маршруты
 router.get("/events", UserController.getEvents);
@@ -49,6 +53,26 @@ router.post(
   "/admin/unblock-user/:cookieId",
   internalAuth,
   UserController.unblockUser,
+);
+
+// ==================== УСЛУГИ И ЗАКАЗЫ ====================
+router.get("/services", OrderPublicController.getServices);
+router.get("/services/:slug", OrderPublicController.getServiceBySlug);
+
+router.post("/orders", orderRateLimiter, OrderPublicController.createOrder);
+router.patch("/orders/:orderId", OrderPublicController.patchOrder);
+router.post(
+  "/orders/:orderId/source-files",
+  orderUploadRateLimiter,
+  uploadOrderSourceFiles,
+  OrderPublicController.uploadOrderSourceFiles,
+);
+router.post("/orders/:orderId/source-links", OrderPublicController.addOrderLink);
+
+router.get("/orders/by-token/:token", OrderPublicController.getOrderByToken);
+router.post(
+  "/orders/by-token/:token/messages",
+  OrderPublicController.postCustomerMessage,
 );
 
 module.exports = router;

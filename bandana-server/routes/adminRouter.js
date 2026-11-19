@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const AdminController = require("../controller/adminController");
+const OrderAdminController = require("../controller/orderAdminController");
 const adminAuth = require("../middleware/adminAuth");
-const { uploadPhoto, uploadVideo } = require("../middleware/upload");
+const { uploadPhoto, uploadVideo, uploadOrderDeliveredFiles } = require("../middleware/upload");
 
 // ==================== АВТОРИЗАЦИЯ И ПРИГЛАШЕНИЯ (без adminAuth) ====================
 router.post("/auth/login", AdminController.login);
@@ -70,5 +71,25 @@ router.get("/accounts", AdminController.listAccounts);
 router.delete("/accounts/:id", AdminController.removeAccount);
 router.post("/invites", AdminController.createInviteHandler);
 router.delete("/invites/:id", AdminController.revokeInvite);
+
+// ==================== КАТАЛОГ УСЛУГ ====================
+router.get("/services", OrderAdminController.listServices);
+router.post("/services", OrderAdminController.createService);
+router.put("/services/:id", OrderAdminController.updateService);
+router.delete("/services/:id", OrderAdminController.deleteService);
+
+// ==================== ЗАКАЗЫ ====================
+router.get("/orders", OrderAdminController.listOrders);
+router.get("/orders/unread-count", OrderAdminController.unreadOrdersCount);
+router.get("/orders/:id", OrderAdminController.getOrderDetail);
+router.post("/orders/:id/status", OrderAdminController.changeStatus);
+router.post("/orders/:id/pricing", OrderAdminController.setPricing);
+router.post(
+  "/orders/:id/files",
+  uploadOrderDeliveredFiles,
+  OrderAdminController.uploadDeliveredFiles,
+);
+router.post("/orders/:id/messages", OrderAdminController.postAdminMessage);
+router.post("/orders/:id/archive", OrderAdminController.archiveOrder);
 
 module.exports = router;

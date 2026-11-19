@@ -72,5 +72,6 @@ function verifySessionToken(token) {
 module.exports = {
   createSessionToken,
   verifySessionToken,
+  timingSafeEqualHex,
   SESSION_TTL_MS,
 };

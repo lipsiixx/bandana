@@ -22,6 +22,7 @@ const Notification = require("../models/notification");
 const AdminUser = require("../models/admin_user");
 const AdminInvite = require("../models/admin_invite");
 const AboutContent = require("../models/about_content");
+const Order = require("../models/order");
 
 const SESSION_COOKIE = "admin_session";
 const UPLOADS_DIR = path.join(__dirname, "../uploads");
@@ -753,7 +754,7 @@ class AdminController {
   async dashboard(req, res) {
     const now = new Date();
 
-    const [pendingReviewsCount, events, galleryCount, galleryCategories, teams, activity] =
+    const [pendingReviewsCount, events, galleryCount, galleryCategories, teams, activity, newOrdersCount] =
       await Promise.all([
         Review.count({ where: { status: "pending" } }),
         Events.findAll({ order: [["createdAt", "DESC"]] }),
@@ -761,6 +762,7 @@ class AdminController {
         Gallery.aggregate("filter", "DISTINCT", { plain: false }),
         Teams.findAll(),
         getRecentActivity(4),
+        Order.count({ where: { status: "new", is_archived: false } }),
       ]);
 
     const upcoming = events
@@ -783,11 +785,19 @@ class AdminController {
         detail: pastDueMasterClasses.map((m) => m.name).join(", "),
       });
     }
+    if (newOrdersCount > 0) {
+      attention.push({
+        type: "orders_new",
+        message: `${newOrdersCount} новых заказ(ов) ждут рассмотрения`,
+        detail: "",
+      });
+    }
 
     res.json({
       success: true,
       data: {
         pendingReviewsCount,
+        newOrdersCount,
         upcomingEvents: upcoming.slice(0, 3).map((u) => ({
           id: u.event.id,
           description: u.event.description,
