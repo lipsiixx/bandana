@@ -262,6 +262,137 @@ class ApiService {
     }
   }
 
+  // ==================== УСЛУГИ И ЗАКАЗЫ ====================
+
+  async getServices() {
+    try {
+      const response = await api.get("/api/services");
+      return response.data;
+    } catch (err) {
+      console.warn("Услуги недоступны:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  async getServiceBySlug(slug) {
+    try {
+      const response = await api.get(`/api/services/${slug}`);
+      return response.data;
+    } catch (err) {
+      console.warn("Услуга недоступна:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  // Создаёт черновик заказа (шаг 1 визарда) — возвращает {orderId, token, orderNumber}
+  async createOrder(data) {
+    try {
+      const response = await api.post("/api/orders", data);
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка создания заказа:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка создания заказа",
+      };
+    }
+  }
+
+  // Сохраняет прогресс визарда (каждый шаг); finalize:true — для шага подтверждения
+  async patchOrder(orderId, token, fields) {
+    try {
+      const response = await api.patch(`/api/orders/${orderId}`, {
+        token,
+        ...fields,
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка сохранения заказа:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка сохранения заказа",
+      };
+    }
+  }
+
+  async uploadOrderFiles(orderId, token, files, onProgress) {
+    try {
+      const form = new FormData();
+      form.append("token", token);
+      for (const file of files) form.append("files", file);
+      const response = await api.post(`/api/orders/${orderId}/source-files`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: onProgress
+          ? (e) => onProgress(e.total ? Math.round((e.loaded / e.total) * 100) : 0)
+          : undefined,
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка загрузки файла:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка загрузки файла",
+      };
+    }
+  }
+
+  async addOrderLink(orderId, token, url, note) {
+    try {
+      const response = await api.post(`/api/orders/${orderId}/source-links`, {
+        token,
+        url,
+        note,
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка добавления ссылки:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка добавления ссылки",
+      };
+    }
+  }
+
+  async getOrderStatus(token) {
+    try {
+      const response = await api.get(`/api/orders/by-token/${token}`);
+      return response.data;
+    } catch (err) {
+      console.warn("Заказ недоступен:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  async postOrderMessage(token, body) {
+    try {
+      const response = await api.post(`/api/orders/by-token/${token}/messages`, {
+        body,
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка отправки сообщения:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка отправки сообщения",
+      };
+    }
+  }
+
   // Уведомления об одобрении/отклонении/блокировке отзыва (для текущего посетителя)
   async getNotifications() {
     try {

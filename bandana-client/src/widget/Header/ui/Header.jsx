@@ -8,6 +8,7 @@ const NAV = [
   { label: "Выступления", target: "performances", type: "anchor" },
   { label: "События", target: "events", type: "anchor" },
   { label: "Мастер-классы", target: "masterclasses", type: "anchor" },
+  { label: "Услуги", target: "/services", type: "route" },
   { label: "Команды", target: "/teams", type: "route" },
   { label: "Галерея", target: "/gallery", type: "route" },
   { label: "Отзывы", target: "/reviews", type: "route" },

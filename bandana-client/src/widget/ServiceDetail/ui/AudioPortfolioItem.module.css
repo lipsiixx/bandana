@@ -1,0 +1,29 @@
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 700;
+}
+
+.note {
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+
+.audio {
+  width: 100%;
+}
