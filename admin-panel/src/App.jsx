@@ -13,6 +13,8 @@ import MasterClassesPage from "./pages/MasterClassesPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import AboutPage from "./pages/AboutPage";
 import AccessPage from "./pages/AccessPage";
+import ServicesPage from "./pages/ServicesPage";
+import OrdersPage from "./pages/OrdersPage";
 
 export default function App() {
   return (
@@ -30,6 +32,9 @@ export default function App() {
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/masterclasses" element={<MasterClassesPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/:id" element={<OrdersPage />} />
             <Route path="/access" element={<AccessPage />} />
           </Route>
         </Route>

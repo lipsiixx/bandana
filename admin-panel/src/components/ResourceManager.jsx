@@ -10,6 +10,8 @@ function emptyFormFromFields(fields) {
       form[field.urlField] = "";
     } else if (field.type === "checkbox") {
       form[field.name] = false;
+    } else if (field.type === "select") {
+      form[field.name] = field.options?.[0]?.value ?? "";
     } else {
       form[field.name] = "";
     }
@@ -233,6 +235,18 @@ export default function ResourceManager({ title, subtitle, api, fields, columns 
                         setForm((prev) => ({ ...prev, [field.nameField]: fileName, [field.urlField]: fileUrl }))
                       }
                     />
+                  ) : field.type === "select" ? (
+                    <select
+                      className="inp"
+                      value={form[field.name]}
+                      onChange={(e) => updateField(field.name, e.target.value)}
+                    >
+                      {field.options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   ) : (
                     <input
                       className="inp"

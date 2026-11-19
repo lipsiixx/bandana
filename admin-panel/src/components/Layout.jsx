@@ -19,6 +19,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    title: "Услуги",
+    items: [
+      { to: "/services", label: "Каталог услуг", icon: "layers" },
+      { to: "/orders", label: "Заказы", icon: "inbox" },
+    ],
+  },
+  {
     title: "Сообщество",
     items: [{ to: "/reviews", label: "Отзывы", icon: "chat" }],
   },
@@ -59,6 +66,13 @@ const ICONS = {
     </>
   ),
   chat: <path d="M4 5h16v11H9l-5 4z" />,
+  layers: <path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" />,
+  inbox: (
+    <>
+      <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+      <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z" />
+    </>
+  ),
   access: (
     <>
       <rect x="4" y="10" width="16" height="11" rx="2" />

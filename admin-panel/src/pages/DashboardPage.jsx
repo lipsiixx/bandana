@@ -71,6 +71,20 @@ export default function DashboardPage() {
           </div>
         </Link>
 
+        <Link to="/orders" className={`card ${styles.summaryCard}`}>
+          <div className={styles.summaryTop}>
+            <span className="lbl">Новые заказы</span>
+            {data.newOrdersCount > 0 && <span className="badge pink">новые</span>}
+          </div>
+          <div className="h" style={{ fontSize: 36, fontWeight: 600 }}>
+            {data.newOrdersCount}
+          </div>
+          <div className="muted" style={{ fontSize: 14 }}>
+            заказ(ов) ждут рассмотрения ·{" "}
+            <span style={{ color: "var(--accent-soft-text)" }}>разобрать →</span>
+          </div>
+        </Link>
+
         <div className={`card ${styles.summaryCard}`}>
           <span className="lbl">Ближайшее событие</span>
           {data.upcomingEvents[0] ? (
