@@ -23,6 +23,7 @@ const AdminUser = require("../models/admin_user");
 const AdminInvite = require("../models/admin_invite");
 const AboutContent = require("../models/about_content");
 const Order = require("../models/order");
+const DanceClass = require("../models/dance_class");
 
 const SESSION_COOKIE = "admin_session";
 const UPLOADS_DIR = path.join(__dirname, "../uploads");
@@ -55,6 +56,15 @@ function removeUploadedFile(fileName) {
 
 function formatRating(rating) {
   return "★".repeat(rating) + "☆".repeat(5 - rating);
+}
+
+// Три категории отзывов (мастер-класс/услуга/занятие) денормализуют имя
+// предмета отзыва в разные колонки — это один общий способ прочитать его
+// для уведомлений/логов независимо от review_type.
+function reviewSubjectName(review) {
+  if (review.review_type === "service") return review.service_title || "услуге";
+  if (review.review_type === "dance_class") return review.dance_class_name || "занятию";
+  return review.master_class_name || "мастер-классу";
 }
 
 class AdminController {
@@ -605,6 +615,65 @@ class AdminController {
     res.json({ success: true });
   }
 
+  // ==================== ЗАНЯТИЯ ПО ТАНЦАМ ====================
+
+  async listDanceClasses(req, res) {
+    const items = await DanceClass.findAll({ order: [["created_at", "DESC"]] });
+    res.json({ success: true, data: items });
+  }
+
+  async createDanceClass(req, res) {
+    const { name, description, is_archived, reviews_enabled } = req.body;
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Нужно name" });
+    }
+    const item = await DanceClass.create({
+      name,
+      description,
+      is_archived: Boolean(is_archived),
+      reviews_enabled: reviews_enabled === undefined ? true : Boolean(reviews_enabled),
+    });
+    await logActivity({
+      admin: req.admin,
+      action: "danceclass.create",
+      section: "dance_classes",
+      summary: `Создано занятие «${name}»`,
+    });
+    res.status(201).json({ success: true, data: item });
+  }
+
+  async updateDanceClass(req, res) {
+    const item = await DanceClass.findByPk(req.params.id);
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Занятие не найдено" });
+    }
+    const { name, description, is_archived, reviews_enabled } = req.body;
+    await item.update({
+      name: name ?? item.name,
+      description: description ?? item.description,
+      is_archived: is_archived === undefined ? item.is_archived : Boolean(is_archived),
+      reviews_enabled:
+        reviews_enabled === undefined ? item.reviews_enabled : Boolean(reviews_enabled),
+      updated_at: new Date(),
+    });
+    res.json({ success: true, data: item });
+  }
+
+  async deleteDanceClass(req, res) {
+    const item = await DanceClass.findByPk(req.params.id);
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Занятие не найдено" });
+    }
+    await item.destroy();
+    await logActivity({
+      admin: req.admin,
+      action: "danceclass.delete",
+      section: "dance_classes",
+      summary: `Удалено занятие «${item.name}»`,
+    });
+    res.json({ success: true });
+  }
+
   // ==================== МОДЕРАЦИЯ ОТЗЫВОВ ====================
   // Логика одобрения/отклонения/блокировки повторяет
   // bot/scenes/moderations/masterClassReviewModerationScene.js, но вместо
@@ -612,7 +681,10 @@ class AdminController {
 
   async listReviews(req, res) {
     const status = req.query.status || "pending";
-    const where = status === "all" ? {} : { status };
+    const type = req.query.type || "all";
+    const where = {};
+    if (status !== "all") where.status = status;
+    if (type !== "all") where.review_type = type;
     const reviews = await Review.findAll({
       where,
       order: [["submitted_at", "ASC"]],
@@ -631,7 +703,7 @@ class AdminController {
       admin: req.admin,
       action: "review.approve",
       section: "reviews",
-      summary: `Одобрен отзыв «${review.author_name}» к «${review.master_class_name}»`,
+      summary: `Одобрен отзыв «${review.author_name}» к «${reviewSubjectName(review)}»`,
     });
 
     if (review.cookie_id) {
@@ -639,7 +711,7 @@ class AdminController {
         cookie_id: review.cookie_id,
         type: "approved",
         message:
-          `✅ Ваш отзыв одобрен!\n\n🎓 Мастер-класс: ${review.master_class_name}\n` +
+          `✅ Ваш отзыв одобрен!\n\n🎓 ${reviewSubjectName(review)}\n` +
           `⭐ Оценка: ${review.rating}/5\n📝 Текст: ${review.content.substring(0, 100)}` +
           `${review.content.length > 100 ? "..." : ""}\n\nСпасибо за ваш отзыв!`,
       });
@@ -664,7 +736,7 @@ class AdminController {
       admin: req.admin,
       action: "review.reject",
       section: "reviews",
-      summary: `Отклонён отзыв к «${review.master_class_name}»`,
+      summary: `Отклонён отзыв к «${reviewSubjectName(review)}»`,
     });
 
     if (review.cookie_id) {
@@ -672,7 +744,7 @@ class AdminController {
         cookie_id: review.cookie_id,
         type: "rejected",
         message:
-          `❌ Ваш отзыв отклонён\n\n🎓 Мастер-класс: ${review.master_class_name}\n` +
+          `❌ Ваш отзыв отклонён\n\n🎓 ${reviewSubjectName(review)}\n` +
           `📝 Причина: ${reason}\n\nВы можете оставить новый отзыв с учётом замечаний.`,
       });
     }

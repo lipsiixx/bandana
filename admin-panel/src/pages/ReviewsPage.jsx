@@ -10,6 +10,13 @@ const TABS = [
   { value: "all", label: "Все" },
 ];
 
+const TYPE_TABS = [
+  { value: "all", label: "Все" },
+  { value: "masterclass", label: "Мастер-классы" },
+  { value: "service", label: "Услуги" },
+  { value: "dance_class", label: "Занятия" },
+];
+
 const SPAM_PATTERNS = [/https?:\/\//i, /www\./i, /скидк/i, /перейд.*ссылк/i, /!!!+/];
 
 function isSpamLike(content) {
@@ -20,11 +27,19 @@ function stars(rating) {
   return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
 
+// Три категории отзывов денормализуют название предмета в разные колонки.
+function subjectName(review) {
+  if (review.review_type === "service") return review.service_title || "услуге";
+  if (review.review_type === "dance_class") return review.dance_class_name || "занятию";
+  return review.master_class_name || "мастер-классу";
+}
+
 export default function ReviewsPage() {
   const [all, setAll] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("pending");
+  const [reviewType, setReviewType] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [checked, setChecked] = useState(() => new Set());
@@ -33,7 +48,7 @@ export default function ReviewsPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await reviewsApi.list("all");
+      const res = await reviewsApi.list("all", "all");
       setAll(res.data || []);
       setError(null);
     } catch (err) {
@@ -47,14 +62,19 @@ export default function ReviewsPage() {
     load();
   }, []);
 
+  const byType = useMemo(
+    () => (reviewType === "all" ? all : all.filter((r) => r.review_type === reviewType)),
+    [all, reviewType],
+  );
+
   const byTab = useMemo(() => {
-    const groups = { pending: [], approved: [], rejected: [], blocked: [], all };
-    for (const r of all) {
+    const groups = { pending: [], approved: [], rejected: [], blocked: [], all: byType };
+    for (const r of byType) {
       if (r.is_blocked) groups.blocked.push(r);
       if (groups[r.status]) groups[r.status].push(r);
     }
     return groups;
-  }, [all]);
+  }, [byType]);
 
   const visible = useMemo(() => {
     const list = byTab[tab] || [];
@@ -64,7 +84,7 @@ export default function ReviewsPage() {
       (r) =>
         r.content?.toLowerCase().includes(q) ||
         r.author_name?.toLowerCase().includes(q) ||
-        r.master_class_name?.toLowerCase().includes(q),
+        subjectName(r).toLowerCase().includes(q),
     );
   }, [byTab, tab, search]);
 
@@ -165,13 +185,32 @@ export default function ReviewsPage() {
         <input
           className="inp"
           style={{ width: "min(240px,100%)" }}
-          placeholder="Текст, имя или мастер-класс"
+          placeholder="Текст, имя или предмет отзыва"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </header>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
+
+      <div className="seg" role="tablist" aria-label="Категория отзыва">
+        {TYPE_TABS.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={reviewType === t.value}
+            className={reviewType === t.value ? "on" : ""}
+            onClick={() => {
+              setReviewType(t.value);
+              setChecked(new Set());
+              setSelectedId(null);
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div role="tablist" aria-label="Статус" className={styles.tabs}>
         {TABS.map((t) => (
@@ -247,7 +286,7 @@ export default function ReviewsPage() {
                       </span>
                     </div>
                     <div className="muted" style={{ fontSize: 13 }}>
-                      к «{r.master_class_name}» · {stars(r.rating)}
+                      к «{subjectName(r)}» · {stars(r.rating)}
                     </div>
                     <div className={styles.clamp}>{r.content}</div>
                   </div>
@@ -282,7 +321,7 @@ export default function ReviewsPage() {
             </div>
 
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--accent-soft-text)" }}>
-              {selected.master_class_name} · {stars(selected.rating)}
+              {subjectName(selected)} · {stars(selected.rating)}
             </div>
 
             <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}>{selected.content}</p>
@@ -328,7 +367,7 @@ export default function ReviewsPage() {
                       {new Date(h.submitted_at).toLocaleDateString("ru-RU")}
                     </span>
                     <span style={{ flex: 1 }}>
-                      {h.blocked_reason ? `Заблокирован · причина: ${h.blocked_reason}` : `Отзыв к «${h.master_class_name}»`}
+                      {h.blocked_reason ? `Заблокирован · причина: ${h.blocked_reason}` : `Отзыв к «${subjectName(h)}»`}
                     </span>
                     <span className={`badge ${h.status === "approved" ? "success" : h.status === "rejected" ? "neutral" : h.is_blocked ? "danger" : "purple"} sm`}>
                       {h.is_blocked ? "блок" : h.status === "pending" ? "на модерации" : h.status === "approved" ? "одобрен" : "отклонён"}

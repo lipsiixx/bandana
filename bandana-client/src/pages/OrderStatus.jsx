@@ -40,6 +40,12 @@ const OrderStatus = () => {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(null);
 
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewContent, setReviewContent] = useState("");
+  const [reviewAuthorName, setReviewAuthorName] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
+
   async function load() {
     const res = await ApiService.getOrderStatus(token);
     if (res?.success && res.data) {
@@ -62,7 +68,32 @@ const OrderStatus = () => {
 
   useEffect(() => {
     document.title = payload ? `Заказ ${payload.order.orderNumber} — BANDANA` : "Заказ — BANDANA";
+    if (payload?.order?.contactName) setReviewAuthorName((prev) => prev || payload.order.contactName);
   }, [payload]);
+
+  async function handleSubmitReview() {
+    setReviewError(null);
+    if (!reviewAuthorName.trim()) {
+      setReviewError("Укажите имя");
+      return;
+    }
+    if (!reviewContent.trim()) {
+      setReviewError("Напишите текст отзыва");
+      return;
+    }
+    setReviewSubmitting(true);
+    const res = await ApiService.submitOrderReview(token, {
+      rating: reviewRating,
+      content: reviewContent.trim(),
+      author_name: reviewAuthorName.trim(),
+    });
+    setReviewSubmitting(false);
+    if (res?.success) {
+      await load();
+    } else {
+      setReviewError(res?.message || "Не удалось отправить отзыв");
+    }
+  }
 
   async function handleSendMessage() {
     if (!messageInput.trim()) return;
@@ -145,6 +176,70 @@ const OrderStatus = () => {
                         </li>
                       ))}
                   </ul>
+                </section>
+              )}
+
+              {payload.review && (
+                <section className={style.section}>
+                  <h3 className={style.sectionTitle}>Ваш отзыв</h3>
+                  <div className={style.reviewCard}>
+                    <div className={style.stars}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} className={s <= payload.review.rating ? style.starOn : style.starOff}>★</span>
+                      ))}
+                    </div>
+                    <p>{payload.review.content}</p>
+                    <span className="muted" style={{ fontSize: "0.85rem" }}>
+                      {payload.review.status === "approved"
+                        ? "Опубликован"
+                        : payload.review.status === "rejected"
+                          ? "Отклонён модератором"
+                          : "На модерации"}
+                    </span>
+                  </div>
+                </section>
+              )}
+
+              {payload.canReview && (
+                <section className={style.section}>
+                  <h3 className={style.sectionTitle}>Оставить отзыв</h3>
+                  <div className={style.stars}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span
+                        key={s}
+                        className={s <= reviewRating ? style.starOn : style.starOff}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setReviewRating(s)}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    className={style.input}
+                    style={{ marginTop: "var(--sp-3)" }}
+                    placeholder="Ваше имя"
+                    value={reviewAuthorName}
+                    onChange={(e) => setReviewAuthorName(e.target.value)}
+                  />
+                  <textarea
+                    className={style.input}
+                    style={{ marginTop: "var(--sp-3)" }}
+                    rows={3}
+                    placeholder="Как вам результат?"
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className={style.sendBtn}
+                    style={{ marginTop: "var(--sp-3)" }}
+                    onClick={handleSubmitReview}
+                    disabled={reviewSubmitting}
+                  >
+                    Отправить отзыв
+                  </button>
+                  {reviewError && <p className={style.error}>{reviewError}</p>}
                 </section>
               )}
 

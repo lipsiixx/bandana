@@ -33,6 +33,38 @@ const Review = sequelize.define(
       comment: "Дата мастер-класса на момент создания отзыва",
     },
     // ============================================================
+    // ========== ТИП ОТЗЫВА И ПРИВЯЗКА К УСЛУГЕ/ЗАНЯТИЮ ==========
+    // review_type различает три независимые категории отзывов; у каждой —
+    // свой набор заполненных полей (остальные FK остаются NULL).
+    review_type: {
+      type: DataTypes.ENUM("masterclass", "service", "dance_class"),
+      defaultValue: "masterclass",
+      allowNull: false,
+    },
+    order_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: "Заказ услуги, к которому привязан отзыв (review_type = service)",
+    },
+    service_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    service_title: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "Название услуги на момент создания отзыва",
+    },
+    dance_class_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    dance_class_name: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "Название направления на момент создания отзыва",
+    },
+    // ============================================================
     rating: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -11,6 +11,7 @@ const Video = require("../models/video");
 const Teams = require("../models/teams");
 const Review = require("../models/review");
 const MasterClasses = require("../models/master_classes");
+const DanceClass = require("../models/dance_class");
 const Notification = require("../models/notification");
 const AboutContent = require("../models/about_content");
 
@@ -318,7 +319,7 @@ ${safeContent}
     try {
       const { event_id, page = 1, limit = 10 } = req.query;
 
-      const where = { status: "approved" };
+      const where = { status: "approved", review_type: "masterclass" };
       if (event_id && event_id !== "all") {
         where.master_class_id = event_id;
       }
@@ -407,7 +408,7 @@ ${safeContent}
       // Просто возвращаем отзывы с master_class_id = id
       // или если id = "all" - все отзывы
 
-      const where = { status: "approved" };
+      const where = { status: "approved", review_type: "masterclass" };
       if (id && id !== "all") {
         where.master_class_id = id;
       }
@@ -492,6 +493,7 @@ ${safeContent}
       // ========== СОЗДАНИЕ ОТЗЫВА С КОПИЕЙ ДАННЫХ МК ==========
       const review = await Review.create({
         author_name,
+        review_type: "masterclass",
         master_class_id: id,
         master_class_name: masterClass.name,
         master_class_date: masterClass.event_date,
@@ -649,6 +651,201 @@ ${safeContent}
       const reviews = await Review.findAll({
         where: {
           master_class_id: id,
+          review_type: "masterclass",
+          status: "approved",
+        },
+        order: [["submitted_at", "DESC"]],
+        limit: parseInt(limit),
+      });
+
+      res.json({
+        success: true,
+        data: reviews,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Ошибка получения отзывов",
+      });
+    }
+  }
+
+  // ==================== ЗАНЯТИЯ ПО ТАНЦАМ (отзывы) ====================
+  // Зеркалит методы мастер-классов выше, но для регулярных групповых
+  // занятий/направлений (DanceClass) — отдельная категория отзывов.
+
+  async getDanceClasses(req, res) {
+    try {
+      const danceClasses = await DanceClass.findAll({
+        where: { is_archived: false },
+        order: [["name", "ASC"]],
+      });
+      res.json({ success: true, data: danceClasses });
+    } catch (error) {
+      console.error("Error in getDanceClasses:", error);
+      res.status(500).json({
+        success: false,
+        message: "Ошибка получения занятий",
+        data: [],
+      });
+    }
+  }
+
+  async getDanceClassReviews(req, res) {
+    try {
+      const { id } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+
+      const where = { status: "approved", review_type: "dance_class" };
+      if (id && id !== "all") {
+        where.dance_class_id = id;
+      }
+
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+
+      const { count, rows } = await Review.findAndCountAll({
+        where,
+        order: [["submitted_at", "DESC"]],
+        limit: parseInt(limit),
+        offset: offset,
+      });
+
+      res.json({
+        success: true,
+        data: rows,
+        pagination: {
+          total: count,
+          page: parseInt(page),
+          pages: Math.ceil(count / parseInt(limit)),
+          limit: parseInt(limit),
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Ошибка получения отзывов",
+      });
+    }
+  }
+
+  async sendDanceClassReview(req, res) {
+    try {
+      const { id } = req.params;
+      const { author_name, rating, content } = req.body;
+      const cookieId = req.cookieId;
+      const ipAddress = req.ipAddress;
+      const userAgent = req.userAgent;
+
+      if (!author_name || !rating || !content) {
+        return res.status(400).json({
+          success: false,
+          message: "Заполните все поля!",
+        });
+      }
+
+      const danceClass = await DanceClass.findByPk(id);
+      if (!danceClass) {
+        return res.status(404).json({
+          success: false,
+          message: "Занятие не найдено",
+        });
+      }
+
+      if (danceClass.reviews_enabled === false) {
+        return res.status(403).json({
+          success: false,
+          message: "Отзывы для этого занятия временно закрыты администратором",
+        });
+      }
+
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({
+          success: false,
+          message: "Рейтинг должен быть от 1 до 5",
+        });
+      }
+
+      if (author_name.length < 2 || author_name.length > 50) {
+        return res.status(400).json({
+          success: false,
+          message: "Имя должно быть от 2 до 50 символов",
+        });
+      }
+
+      if (content.length < 1 || content.length > 2000) {
+        return res.status(400).json({
+          success: false,
+          message: "Текст отзыва должен быть от 1 до 2000 символов",
+        });
+      }
+
+      const review = await Review.create({
+        author_name,
+        review_type: "dance_class",
+        dance_class_id: id,
+        dance_class_name: danceClass.name,
+        rating,
+        content,
+        cookie_id: cookieId,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        status: "pending",
+      });
+
+      const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+      const safeAuthorName = escapeMarkdown(author_name);
+      const notificationText = `
+📝 *НОВЫЙ ОТЗЫВ НА МОДЕРАЦИЮ!*
+
+👤 *Автор:* ${safeAuthorName}
+⭐ *Оценка:* ${stars} (${rating}/5)
+💃 *Занятие:* ${danceClass.name}
+
+🆔 *ID отзыва:* ${review.id}
+⏰ *Получен:* ${new Date().toLocaleString("ru-RU")}`;
+
+      const admins = (process.env.ADMINS_ID || "")
+        .split(",")
+        .map(Number)
+        .filter(Boolean);
+
+      for (const adminId of admins) {
+        try {
+          await bot.telegram.sendMessage(adminId, notificationText, {
+            parse_mode: "Markdown",
+          });
+        } catch (err) {
+          console.error(
+            `Не удалось отправить уведомление админу ${adminId}:`,
+            err,
+          );
+        }
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: "Спасибо, отзыв появится после проверки",
+      });
+    } catch (err) {
+      console.error("Send dance class review error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Ошибка при сохранении отзыва",
+      });
+    }
+  }
+
+  async getApprovedDanceClassReviews(req, res) {
+    try {
+      const { id } = req.params;
+      const { limit = 20 } = req.query;
+
+      const reviews = await Review.findAll({
+        where: {
+          dance_class_id: id,
+          review_type: "dance_class",
           status: "approved",
         },
         order: [["submitted_at", "DESC"]],

@@ -12,6 +12,7 @@ const NAV_SECTIONS = [
     items: [
       { to: "/events", label: "События", icon: "calendar" },
       { to: "/masterclasses", label: "Мастер-классы", icon: "star" },
+      { to: "/dance-classes", label: "Занятия", icon: "activity" },
       { to: "/gallery", label: "Галерея", icon: "image" },
       { to: "/video", label: "Видео", icon: "video" },
       { to: "/teams", label: "Команды", icon: "users" },
@@ -66,6 +67,7 @@ const ICONS = {
     </>
   ),
   chat: <path d="M4 5h16v11H9l-5 4z" />,
+  activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
   layers: <path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5" />,
   inbox: (
     <>

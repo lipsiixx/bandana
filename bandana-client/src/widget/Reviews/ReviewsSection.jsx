@@ -4,86 +4,89 @@ import Title from "../../shared/ui/Title/Title";
 import LoadError from "../../shared/ui/LoadError/LoadError";
 import api from "../../shared/api/api";
 
+const CATEGORY_TABS = [
+  { value: "masterclass", label: "Мастер-классы" },
+  { value: "dance_class", label: "Занятия" },
+  { value: "service", label: "Услуги" },
+];
+
+// Мастер-классы и занятия устроены одинаково (список сущностей для фильтра +
+// форма + отзывы с пагинацией) — только разные эндпоинты. Услуги — отдельная
+// ветка: отзыв оставляется на странице заказа, здесь только список.
+const ENTITY_CONFIG = {
+  masterclass: {
+    filterLabel: "Фильтр по мастер-классу:",
+    allLabel: "Все мастер-классы",
+    pickLabel: "Выберите мастер-класс",
+    getEntities: () => api.getMasterClasses(),
+    getReviews: (id, page, limit) => api.getMasterClassReviews(id, page, limit),
+    sendReview: (id, data) => api.sendMasterClassReview(id, data),
+    entityDateField: "event_date",
+  },
+  dance_class: {
+    filterLabel: "Фильтр по занятию:",
+    allLabel: "Все занятия",
+    pickLabel: "Выберите занятие",
+    getEntities: () => api.getDanceClasses(),
+    getReviews: (id, page, limit) => api.getDanceClassReviews(id, page, limit),
+    sendReview: (id, data) => api.sendDanceClassReview(id, data),
+    entityDateField: null,
+  },
+};
+
 const ReviewsSection = () => {
+  const [category, setCategory] = useState("masterclass");
+  const [entities, setEntities] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [masterClasses, setMasterClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedMasterClass, setSelectedMasterClass] = useState("all");
-  const [pagination, setPagination] = useState({
-    page: 1,
-    pages: 1,
-    total: 0,
-    limit: 10,
-  });
+  const [selectedEntity, setSelectedEntity] = useState("all");
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 10 });
 
-  const [formData, setFormData] = useState({
-    author_name: "",
-    rating: 5,
-    content: "",
-  });
+  const [formData, setFormData] = useState({ author_name: "", rating: 5, content: "" });
   const [formMessage, setFormMessage] = useState({ type: "", text: "" });
   const [showForm, setShowForm] = useState(false);
 
+  const config = ENTITY_CONFIG[category];
+
   useEffect(() => {
-    fetchMasterClasses();
-    fetchReviews();
-    // Перезагружаем при смене выбранного МК и страницы; fetch-функции
-    // стабильны по поведению и намеренно не включены в зависимости.
+    if (config) fetchEntities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMasterClass, pagination.page]);
+  }, [category]);
 
-  const fetchMasterClasses = async () => {
+  useEffect(() => {
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, selectedEntity, pagination.page]);
+
+  async function fetchEntities() {
     try {
-      const response = await api.getMasterClasses();
-      let classes = [];
-      if (response?.success && Array.isArray(response.data)) {
-        classes = response.data.filter((item) => item.is_archived !== true);
-      } else if (Array.isArray(response)) {
-        classes = response.filter((item) => item.is_archived !== true);
-      }
-      setMasterClasses(classes);
+      const response = await config.getEntities();
+      const list = Array.isArray(response?.data) ? response.data : [];
+      setEntities(list.filter((item) => item.is_archived !== true));
     } catch (err) {
-      console.error("Ошибка загрузки мастер-классов:", err);
+      console.error("Ошибка загрузки списка:", err);
     }
-  };
+  }
 
-  const fetchReviews = async () => {
+  async function fetchReviews() {
     setLoading(true);
     setLoadError(false);
     try {
-      const masterClassId =
-        selectedMasterClass === "all" ? null : selectedMasterClass;
-
       let response;
-      if (masterClassId) {
-        response = await api.getMasterClassReviews(
-          masterClassId,
-          pagination.page,
-          pagination.limit,
-        );
+      if (category === "service") {
+        response = await api.getServiceReviews("all", pagination.page, pagination.limit);
       } else {
-        response = await api.getPublishedReviews(
-          null,
-          pagination.page,
-          pagination.limit,
-        );
+        response = await config.getReviews(selectedEntity, pagination.page, pagination.limit);
       }
 
-      if (response?.error) {
-        setLoadError(true);
-      }
+      if (response?.error) setLoadError(true);
 
       if (response?.success && Array.isArray(response.data)) {
         setReviews(response.data);
         if (response.pagination) {
-          setPagination({
-            page: response.pagination.page,
-            pages: response.pagination.pages,
-            total: response.pagination.total,
-            limit: response.pagination.limit,
-          });
+          setPagination((prev) => ({ ...prev, ...response.pagination }));
         }
       } else {
         setReviews([]);
@@ -95,10 +98,18 @@ const ReviewsSection = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  function switchCategory(value) {
+    setCategory(value);
+    setSelectedEntity("all");
+    setShowForm(false);
+    setFormMessage({ type: "", text: "" });
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }
 
   const handleFilterChange = (e) => {
-    setSelectedMasterClass(e.target.value);
+    setSelectedEntity(e.target.value);
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
@@ -116,25 +127,18 @@ const ReviewsSection = () => {
     setSubmitting(true);
     setFormMessage({ type: "", text: "" });
 
-    if (selectedMasterClass === "all") {
-      setFormMessage({
-        type: "error",
-        text: "Пожалуйста, выберите мастер-класс",
-      });
+    if (selectedEntity === "all") {
+      setFormMessage({ type: "error", text: "Пожалуйста, выберите из списка" });
       setSubmitting(false);
       return;
     }
-
     if (!formData.author_name.trim()) {
       setFormMessage({ type: "error", text: "Введите ваше имя" });
       setSubmitting(false);
       return;
     }
     if (formData.author_name.length < 2 || formData.author_name.length > 50) {
-      setFormMessage({
-        type: "error",
-        text: "Имя должно быть от 2 до 50 символов",
-      });
+      setFormMessage({ type: "error", text: "Имя должно быть от 2 до 50 символов" });
       setSubmitting(false);
       return;
     }
@@ -144,124 +148,98 @@ const ReviewsSection = () => {
       return;
     }
     if (formData.content.length < 1 || formData.content.length > 2000) {
-      setFormMessage({
-        type: "error",
-        text: "Текст отзыва должен быть от 1 до 2000 символов",
-      });
+      setFormMessage({ type: "error", text: "Текст отзыва должен быть от 1 до 2000 символов" });
       setSubmitting(false);
       return;
     }
 
     try {
-      const response = await api.sendMasterClassReview(selectedMasterClass, {
+      const response = await config.sendReview(selectedEntity, {
         author_name: formData.author_name,
         rating: formData.rating,
         content: formData.content,
       });
 
       if (response?.success) {
-        setFormMessage({
-          type: "success",
-          text: "Спасибо! Отзыв появится после проверки",
-        });
+        setFormMessage({ type: "success", text: "Спасибо! Отзыв появится после проверки" });
         setFormData({ author_name: "", rating: 5, content: "" });
         setShowForm(false);
-        setTimeout(() => {
-          fetchReviews();
-        }, 2000);
+        setTimeout(() => fetchReviews(), 2000);
       } else {
-        let errorText = response?.message || "Ошибка при отправке";
-        if (errorText.includes("Слишком много")) {
-          errorText = "⚠️ " + errorText;
-        } else if (errorText.includes("заблокированы")) {
-          errorText = "🔨 " + errorText;
-        } else if (errorText.includes("уже оставляли")) {
-          errorText = "📝 " + errorText;
-        }
-        setFormMessage({ type: "error", text: errorText });
+        setFormMessage({ type: "error", text: response?.message || "Ошибка при отправке" });
       }
     } catch (err) {
       console.error("Ошибка:", err);
-      let errorText = "❌ Ошибка при отправке отзыва";
-      if (err.response?.status === 429) {
-        errorText =
-          "⚠️ Слишком много отзывов. Вы можете оставить не более 3 отзывов в час.";
-      } else if (err.response?.status === 403) {
-        errorText = "🔨 " + (err.response?.data?.message || "Вы заблокированы");
-      } else if (err.response?.status === 400) {
-        errorText =
-          "📝 " + (err.response?.data?.message || "Вы уже оставляли отзыв");
-      } else if (err.response?.data?.message) {
-        errorText = err.response.data.message;
-      }
-      setFormMessage({ type: "error", text: errorText });
+      setFormMessage({ type: "error", text: "Ошибка при отправке отзыва" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const renderStars = (rating) => {
-    return (
-      <div className={style.stars}>
+  const renderStars = (rating) => (
+    <div className={style.stars}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star} className={star <= rating ? style.starFilled : style.starEmpty}>★</span>
+      ))}
+    </div>
+  );
+
+  const renderRatingInput = () => (
+    <div className={style.ratingInput}>
+      <label>Оценка</label>
+      <div className={style.starsInput}>
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
-            className={star <= rating ? style.starFilled : style.starEmpty}
+            className={star <= formData.rating ? style.starFilled : style.starEmpty}
+            onClick={() => handleRatingClick(star)}
+            style={{ cursor: "pointer" }}
           >
             ★
           </span>
         ))}
       </div>
-    );
-  };
+    </div>
+  );
 
-  const renderRatingInput = () => {
-    return (
-      <div className={style.ratingInput}>
-        <label>Оценка</label>
-        <div className={style.starsInput}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={
-                star <= formData.rating ? style.starFilled : style.starEmpty
-              }
-              onClick={() => handleRatingClick(star)}
-              style={{ cursor: "pointer" }}
-            >
-              ★
-            </span>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 
   /* Сводка «4,9 · N отзывов» — считается по загруженным отзывам,
      показывается от 3 отзывов (правило «реальное значение или скрыто») */
   const avgRating =
     reviews.length > 0
-      ? (
-          reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
-        ).toLocaleString("ru-RU", {
-          minimumFractionDigits: 1,
-          maximumFractionDigits: 1,
-        })
+      ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toLocaleString(
+          "ru-RU",
+          { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+        )
       : null;
-  const showSummary =
-    !loading && !loadError && pagination.total >= 3 && avgRating;
+  const showSummary = !loading && !loadError && pagination.total >= 3 && avgRating;
+
+  function subjectLabel(review) {
+    if (review.review_type === "service") return review.service_title;
+    if (review.review_type === "dance_class") return review.dance_class_name;
+    return review.master_class_name;
+  }
 
   return (
     <div className={style.reviewsPage}>
       <Title text="Отзывы" overline="Говорят ученики и родители" />
+
+      <div className={style.segment} role="tablist" aria-label="Категория отзывов">
+        {CATEGORY_TABS.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={category === t.value}
+            className={category === t.value ? style.segmentOn : style.segmentOff}
+            onClick={() => switchCategory(t.value)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {showSummary && (
         <div className={style.summary}>
@@ -270,8 +248,7 @@ const ReviewsSection = () => {
             {pagination.total}{" "}
             {pagination.total % 10 === 1 && pagination.total % 100 !== 11
               ? "отзыв"
-              : [2, 3, 4].includes(pagination.total % 10) &&
-                  ![12, 13, 14].includes(pagination.total % 100)
+              : [2, 3, 4].includes(pagination.total % 10) && ![12, 13, 14].includes(pagination.total % 100)
                 ? "отзыва"
                 : "отзывов"}
           </span>
@@ -279,36 +256,34 @@ const ReviewsSection = () => {
       )}
 
       <div className={style.content}>
-        {/* Фильтр и кнопка */}
-        <div className={style.filterSection}>
-          <div className={style.filterGroup}>
-            <label>Фильтр по мастер-классу:</label>
-            <select
-              value={selectedMasterClass}
-              onChange={handleFilterChange}
-              className={style.filterSelect}
-            >
-              <option value="all">Все мастер-классы</option>
-              {masterClasses.map((mc) => (
-                <option key={mc.id} value={mc.id}>
-                  {mc.name}{" "}
-                  {mc.event_date &&
-                    `(${new Date(mc.event_date).toLocaleDateString("ru-RU")})`}
-                </option>
-              ))}
-            </select>
+        {category === "service" ? (
+          <p className={style.serviceHint}>
+            Оставить отзыв об услуге можно на странице вашего заказа после завершения работы.
+          </p>
+        ) : (
+          <div className={style.filterSection}>
+            <div className={style.filterGroup}>
+              <label>{config.filterLabel}</label>
+              <select value={selectedEntity} onChange={handleFilterChange} className={style.filterSelect}>
+                <option value="all">{config.allLabel}</option>
+                {entities.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                    {config.entityDateField && item[config.entityDateField]
+                      ? ` (${new Date(item[config.entityDateField]).toLocaleDateString("ru-RU")})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button onClick={() => setShowForm(!showForm)} className={style.addReviewBtn}>
+              {showForm ? "Отменить" : "Оставить отзыв"}
+            </button>
           </div>
+        )}
 
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className={style.addReviewBtn}
-          >
-            {showForm ? "Отменить" : "Оставить отзыв"}
-          </button>
-        </div>
-
-        {/* Форма добавления отзыва */}
-        {showForm && (
+        {showForm && category !== "service" && (
           <div className={style.formContainer}>
             <h3>Оставить отзыв</h3>
             <form onSubmit={handleSubmitReview} className={style.reviewForm}>
@@ -326,23 +301,19 @@ const ReviewsSection = () => {
               </div>
 
               <div className={style.formGroup}>
-                <label>Выберите мастер-класс *</label>
+                <label>{config.pickLabel} *</label>
                 <select
-                  value={
-                    selectedMasterClass === "all" ? "" : selectedMasterClass
-                  }
-                  onChange={(e) => setSelectedMasterClass(e.target.value)}
+                  value={selectedEntity === "all" ? "" : selectedEntity}
+                  onChange={(e) => setSelectedEntity(e.target.value)}
                   className={style.formInput}
                   required
                 >
                   <option value="" disabled>
-                    Выберите мастер-класс
+                    {config.pickLabel}
                   </option>
-                  {masterClasses.map((mc) => (
-                    <option key={mc.id} value={mc.id}>
-                      {mc.name}{" "}
-                      {mc.event_date &&
-                        `(${new Date(mc.event_date).toLocaleDateString("ru-RU")})`}
+                  {entities.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
                     </option>
                   ))}
                 </select>
@@ -356,7 +327,7 @@ const ReviewsSection = () => {
                   name="content"
                   value={formData.content}
                   onChange={handleInputChange}
-                  placeholder="Поделитесь впечатлениями о мастер-классе..."
+                  placeholder="Поделитесь впечатлениями..."
                   className={style.formTextarea}
                   rows="5"
                   maxLength="2000"
@@ -364,25 +335,16 @@ const ReviewsSection = () => {
               </div>
 
               {formMessage.text && (
-                <div
-                  className={`${style.formMessage} ${style[formMessage.type]}`}
-                >
-                  {formMessage.text}
-                </div>
+                <div className={`${style.formMessage} ${style[formMessage.type]}`}>{formMessage.text}</div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className={style.submitBtn}
-              >
+              <button type="submit" disabled={submitting} className={style.submitBtn}>
                 {submitting ? "Отправка..." : "Отправить отзыв"}
               </button>
             </form>
           </div>
         )}
 
-        {/* Список отзывов */}
         <div className={style.reviewsList}>
           {loading ? (
             <div className={style.skeletonContainer}>
@@ -400,9 +362,9 @@ const ReviewsSection = () => {
             <div className={style.emptyReviews}>
               <span className={style.emptyIcon}>💬</span>
               <p>Пока нет отзывов</p>
-              <p className={style.emptySubtext}>
-                Будьте первым, кто оставит отзыв!
-              </p>
+              {category !== "service" && (
+                <p className={style.emptySubtext}>Будьте первым, кто оставит отзыв!</p>
+              )}
             </div>
           ) : (
             <>
@@ -410,20 +372,11 @@ const ReviewsSection = () => {
                 <div key={review.id} className={style.reviewCard}>
                   <div className={style.reviewHeader}>
                     <div className={style.reviewerInfo}>
-                      <span className={style.reviewerName}>
-                        {review.author_name}
-                      </span>
-                      {review.master_class_name && (
-                        <span className={style.reviewMasterClass}>
-                          {review.master_class_name}
-                          {review.master_class_date && (
-                            <> • {formatDate(review.master_class_date)}</>
-                          )}
-                        </span>
+                      <span className={style.reviewerName}>{review.author_name}</span>
+                      {subjectLabel(review) && (
+                        <span className={style.reviewMasterClass}>{subjectLabel(review)}</span>
                       )}
-                      <span className={style.reviewDate}>
-                        {formatDate(review.submitted_at)}
-                      </span>
+                      <span className={style.reviewDate}>{formatDate(review.submitted_at)}</span>
                     </div>
                     {renderStars(review.rating)}
                   </div>
@@ -434,12 +387,7 @@ const ReviewsSection = () => {
               {pagination.pages > 1 && (
                 <div className={style.pagination}>
                   <button
-                    onClick={() =>
-                      setPagination((prev) => ({
-                        ...prev,
-                        page: prev.page - 1,
-                      }))
-                    }
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
                     disabled={pagination.page === 1}
                     className={style.paginationBtn}
                   >
@@ -449,12 +397,7 @@ const ReviewsSection = () => {
                     Страница {pagination.page} из {pagination.pages}
                   </span>
                   <button
-                    onClick={() =>
-                      setPagination((prev) => ({
-                        ...prev,
-                        page: prev.page + 1,
-                      }))
-                    }
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
                     disabled={pagination.page === pagination.pages}
                     className={style.paginationBtn}
                   >

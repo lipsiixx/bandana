@@ -61,4 +61,19 @@ ${adminPanelUrl ? `🔗 ${adminPanelUrl}/orders/${order.id}` : ""}
   await broadcastToAdmins(text);
 }
 
-module.exports = { notifyAdminsNewOrder, notifyAdminsNewCustomerMessage };
+async function notifyAdminsNewReview(order, review) {
+  const adminPanelUrl = process.env.ADMIN_PANEL_URL || "";
+  const stars = "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
+  const text = `
+📝 *Новый отзыв об услуге на модерацию*
+
+🎧 Заказ: ${escapeMarkdown(order.order_number)}
+⭐ Оценка: ${stars} (${review.rating}/5)
+👤 Автор: ${escapeMarkdown(review.author_name)}
+
+${adminPanelUrl ? `🔗 ${adminPanelUrl}/reviews` : ""}
+`;
+  await broadcastToAdmins(text);
+}
+
+module.exports = { notifyAdminsNewOrder, notifyAdminsNewCustomerMessage, notifyAdminsNewReview };

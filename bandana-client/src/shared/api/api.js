@@ -201,6 +201,106 @@ class ApiService {
     }
   }
 
+  // ==================== ЗАНЯТИЯ ПО ТАНЦАМ ====================
+
+  async getDanceClasses() {
+    try {
+      const response = await api.get("/api/dance-classes");
+      return response.data;
+    } catch (err) {
+      console.warn("Занятия недоступны:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  async getDanceClassReviews(danceClassId, page = 1, limit = 10) {
+    try {
+      const response = await api.get(`/api/dance-classes/${danceClassId}/reviews`, {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Отзывы занятия недоступны:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: [],
+        pagination: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  async sendDanceClassReview(danceClassId, data) {
+    try {
+      const response = await api.post(`/api/dance-classes/${danceClassId}/send-review`, data);
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка отправки отзыва:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка отправки отзыва",
+      };
+    }
+  }
+
+  async getApprovedDanceClassReviews(danceClassId, limit = 20) {
+    try {
+      const response = await api.get(`/api/dance-classes/${danceClassId}/reviews/approved`, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Отзывы занятия недоступны:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: [],
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  // ==================== ОТЗЫВЫ ОБ УСЛУГАХ ====================
+
+  // Одобренные отзывы об услугах — slug="all" для всех услуг сразу
+  async getServiceReviews(slug = "all", page = 1, limit = 10) {
+    try {
+      const response = await api.get(`/api/services/${slug}/reviews`, {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (err) {
+      console.warn("Отзывы об услугах недоступны:", err.message);
+      return {
+        success: false,
+        error: true,
+        data: [],
+        pagination: null,
+        message: "Сервер временно недоступен. Попробуйте позже.",
+      };
+    }
+  }
+
+  // Отзыв об услуге — только на странице заказа, после завершения (status === "completed")
+  async submitOrderReview(token, data) {
+    try {
+      const response = await api.post(`/api/orders/by-token/${token}/review`, data);
+      return response.data;
+    } catch (err) {
+      console.warn("Ошибка отправки отзыва:", err.message);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Ошибка отправки отзыва",
+      };
+    }
+  }
+
   // ==================== ОТЗЫВЫ ДЛЯ СОБЫТИЙ ====================
 
   // Отправить отзыв на событие

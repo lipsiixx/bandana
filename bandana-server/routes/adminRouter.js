@@ -54,6 +54,12 @@ router.post("/masterclasses", AdminController.createMasterClass);
 router.put("/masterclasses/:id", AdminController.updateMasterClass);
 router.delete("/masterclasses/:id", AdminController.deleteMasterClass);
 
+// ==================== ЗАНЯТИЯ ПО ТАНЦАМ ====================
+router.get("/dance-classes", AdminController.listDanceClasses);
+router.post("/dance-classes", AdminController.createDanceClass);
+router.put("/dance-classes/:id", AdminController.updateDanceClass);
+router.delete("/dance-classes/:id", AdminController.deleteDanceClass);
+
 // ==================== МОДЕРАЦИЯ ОТЗЫВОВ ====================
 router.get("/reviews", AdminController.listReviews);
 router.get("/reviews/visitor/:cookieId", AdminController.reviewsByVisitor);

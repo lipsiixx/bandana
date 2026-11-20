@@ -35,6 +35,19 @@ router.get(
   UserController.getApprovedMasterClassReviews,
 );
 
+// НОВЫЕ МАРШРУТЫ ДЛЯ ЗАНЯТИЙ ПО ТАНЦАМ
+router.get("/dance-classes", UserController.getDanceClasses);
+router.get("/dance-classes/:id/reviews", UserController.getDanceClassReviews);
+router.post(
+  "/dance-classes/:id/send-review",
+  reviewRateLimiter.forColumn("dance_class_id"),
+  UserController.sendDanceClassReview,
+);
+router.get(
+  "/dance-classes/:id/reviews/approved",
+  UserController.getApprovedDanceClassReviews,
+);
+
 router.get("/refresh-cookie", UserController.refreshCookie);
 
 // УВЕДОМЛЕНИЯ
@@ -58,6 +71,7 @@ router.post(
 // ==================== УСЛУГИ И ЗАКАЗЫ ====================
 router.get("/services", OrderPublicController.getServices);
 router.get("/services/:slug", OrderPublicController.getServiceBySlug);
+router.get("/services/:slug/reviews", OrderPublicController.getServiceReviews);
 
 router.post("/orders", orderRateLimiter, OrderPublicController.createOrder);
 router.patch("/orders/:orderId", OrderPublicController.patchOrder);
@@ -73,6 +87,10 @@ router.get("/orders/by-token/:token", OrderPublicController.getOrderByToken);
 router.post(
   "/orders/by-token/:token/messages",
   OrderPublicController.postCustomerMessage,
+);
+router.post(
+  "/orders/by-token/:token/review",
+  OrderPublicController.submitOrderReview,
 );
 
 module.exports = router;

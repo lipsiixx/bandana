@@ -96,6 +96,7 @@
 }
 
 .input {
+  width: 100%;
   flex: 1;
   padding: 12px 14px;
   background: var(--surface-2);
@@ -134,6 +135,24 @@
   color: var(--error);
   font-size: 0.9rem;
 }
+
+.reviewCard {
+  padding: var(--sp-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 4px;
+  font-size: 1.3rem;
+}
+.starOn { color: var(--accent); }
+.starOff { color: var(--line); }
 
 .skeleton {
   height: 320px;

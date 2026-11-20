@@ -9,10 +9,15 @@ const Service = require("../models/service");
 const Order = require("../models/order");
 const OrderFile = require("../models/order_file");
 const OrderMessage = require("../models/order_message");
+const Review = require("../models/review");
 
 const { generateOrderToken, hashOrderToken, findOrderByToken } = require("../services/orderTokenService");
 const { generateUniqueOrderNumber } = require("../services/orderNumberService");
-const { notifyAdminsNewOrder, notifyAdminsNewCustomerMessage } = require("../services/orderNotificationService");
+const {
+  notifyAdminsNewOrder,
+  notifyAdminsNewCustomerMessage,
+  notifyAdminsNewReview,
+} = require("../services/orderNotificationService");
 const { UPLOADS_DIR } = require("../middleware/upload");
 
 const ALLOWED_FORMATS = ["dance_cut", "mix_edit", "performance_edit", "custom_edit"];
@@ -83,6 +88,17 @@ function publicMessage(message) {
     sender: message.sender,
     body: message.body,
     createdAt: message.created_at,
+  };
+}
+
+function publicReview(review) {
+  if (!review) return null;
+  return {
+    id: review.id,
+    rating: review.rating,
+    content: review.content,
+    status: review.status,
+    submittedAt: review.submitted_at,
   };
 }
 
@@ -275,10 +291,11 @@ class OrderPublicController {
         return res.status(404).json({ success: false, message: "Заказ не найден или ссылка устарела" });
       }
 
-      const [service, files, messages] = await Promise.all([
+      const [service, files, messages, review] = await Promise.all([
         Service.findByPk(order.service_id),
         OrderFile.findAll({ where: { order_id: order.id }, order: [["created_at", "ASC"]] }),
         OrderMessage.findAll({ where: { order_id: order.id }, order: [["created_at", "ASC"]] }),
+        Review.findOne({ where: { order_id: order.id } }),
       ]);
 
       await OrderMessage.update(
@@ -293,6 +310,8 @@ class OrderPublicController {
           service: service ? { slug: service.slug, title: service.title } : null,
           files: files.map(publicFile),
           messages: messages.map(publicMessage),
+          review: publicReview(review),
+          canReview: order.status === "completed" && !review,
         },
       });
     } catch (err) {
@@ -329,6 +348,109 @@ class OrderPublicController {
     } catch (err) {
       console.error("Post customer message error:", err);
       res.status(500).json({ success: false, message: "Ошибка при отправке сообщения" });
+    }
+  }
+
+  // Одобренные отзывы об услугах — для публичной страницы «Отзывы»
+  // (slug="all" — по всем услугам сразу, как getMasterClassReviews(id="all")).
+  async getServiceReviews(req, res) {
+    try {
+      const { slug } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+
+      const where = { status: "approved", review_type: "service" };
+      if (slug && slug !== "all") {
+        const service = await Service.findOne({ where: { slug } });
+        if (!service) {
+          return res.status(404).json({ success: false, message: "Услуга не найдена" });
+        }
+        where.service_id = service.id;
+      }
+
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const { count, rows } = await Review.findAndCountAll({
+        where,
+        order: [["submitted_at", "DESC"]],
+        limit: parseInt(limit),
+        offset,
+      });
+
+      res.json({
+        success: true,
+        data: rows,
+        pagination: {
+          total: count,
+          page: parseInt(page),
+          pages: Math.ceil(count / parseInt(limit)),
+          limit: parseInt(limit),
+        },
+      });
+    } catch (err) {
+      console.error("Get service reviews error:", err);
+      res.status(500).json({ success: false, message: "Ошибка получения отзывов" });
+    }
+  }
+
+  // Отзыв об услуге — привязан к конкретному завершённому заказу, один
+  // отзыв на заказ (UNIQUE-индекс на order_id страхует и на уровне БД).
+  async submitOrderReview(req, res) {
+    try {
+      const order = await findOrderByToken(req.params.token);
+      if (!order) {
+        return res.status(404).json({ success: false, message: "Заказ не найден или ссылка устарела" });
+      }
+      if (order.status !== "completed") {
+        return res
+          .status(400)
+          .json({ success: false, message: "Отзыв можно оставить только после завершения заказа" });
+      }
+
+      const existing = await Review.findOne({ where: { order_id: order.id } });
+      if (existing) {
+        return res.status(400).json({ success: false, message: "Отзыв на этот заказ уже оставлен" });
+      }
+
+      const { rating, content } = req.body;
+      const authorName = (req.body.author_name || order.contact_name || "").trim();
+
+      if (!authorName || !rating || !content) {
+        return res.status(400).json({ success: false, message: "Заполните все поля!" });
+      }
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, message: "Рейтинг должен быть от 1 до 5" });
+      }
+      if (authorName.length < 2 || authorName.length > 50) {
+        return res.status(400).json({ success: false, message: "Имя должно быть от 2 до 50 символов" });
+      }
+      if (content.length < 1 || content.length > 2000) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Текст отзыва должен быть от 1 до 2000 символов" });
+      }
+
+      const service = await Service.findByPk(order.service_id);
+
+      const review = await Review.create({
+        author_name: authorName,
+        review_type: "service",
+        order_id: order.id,
+        service_id: order.service_id,
+        service_title: service?.title || null,
+        rating,
+        content,
+        cookie_id: order.cookie_id,
+        ip_address: req.ip,
+        status: "pending",
+      });
+
+      notifyAdminsNewReview(order, review).catch((err) =>
+        console.error("notifyAdminsNewReview:", err),
+      );
+
+      res.status(201).json({ success: true, message: "Спасибо, отзыв появится после проверки" });
+    } catch (err) {
+      console.error("Submit order review error:", err);
+      res.status(500).json({ success: false, message: "Ошибка при сохранении отзыва" });
     }
   }
 }

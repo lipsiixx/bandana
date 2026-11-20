@@ -71,6 +71,7 @@ export const galleryApi = makeResourceApi("gallery");
 export const videoApi = makeResourceApi("video");
 export const teamsApi = makeResourceApi("teams");
 export const masterClassesApi = makeResourceApi("masterclasses");
+export const danceClassesApi = makeResourceApi("dance-classes");
 
 // sort_order приходит из ResourceManager как строка (текстовое поле) —
 // на сервере колонка INTEGER, приводим к числу перед отправкой.
@@ -115,8 +116,8 @@ export const ordersApi = {
 };
 
 export const reviewsApi = {
-  list: (status = "pending") =>
-    client.get("/api/admin/reviews", { params: { status } }).then((r) => r.data),
+  list: (status = "pending", type = "all") =>
+    client.get("/api/admin/reviews", { params: { status, type } }).then((r) => r.data),
   byVisitor: (cookieId) =>
     client.get(`/api/admin/reviews/visitor/${cookieId}`).then((r) => r.data),
   approve: (id) =>

@@ -10,6 +10,7 @@ import GalleryPage from "./pages/GalleryPage";
 import VideoPage from "./pages/VideoPage";
 import TeamsPage from "./pages/TeamsPage";
 import MasterClassesPage from "./pages/MasterClassesPage";
+import DanceClassesPage from "./pages/DanceClassesPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import AboutPage from "./pages/AboutPage";
 import AccessPage from "./pages/AccessPage";
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/video" element={<VideoPage />} />
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/masterclasses" element={<MasterClassesPage />} />
+            <Route path="/dance-classes" element={<DanceClassesPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/orders" element={<OrdersPage />} />
