@@ -78,6 +78,14 @@ const OrderStatus = () => {
     }
   }
 
+  // Enter — отправить, Shift+Enter — новая строка (как в привычных чатах)
+  function handleMessageKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  }
+
   return (
     <div>
       <Header />
@@ -166,11 +174,13 @@ const OrderStatus = () => {
                     placeholder="Написать сообщение"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={handleMessageKeyDown}
                   />
                   <button type="button" className={style.sendBtn} onClick={handleSendMessage} disabled={sending}>
                     Отправить
                   </button>
                 </div>
+                <p className={style.hint}>Enter — отправить, Shift+Enter — новая строка</p>
                 {sendError && <p className={style.error}>{sendError}</p>}
               </section>
             </>

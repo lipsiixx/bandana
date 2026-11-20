@@ -79,7 +79,10 @@
 }
 
 /* ---------- База ---------- */
-html { -webkit-text-size-adjust: 100%; }
+/* Без этого нативные виджеты (календарь у input[type=date], чекбоксы и т.п.)
+   рисуются браузером в светлой палитре по умолчанию — чужеродное светлое
+   пятно на тёмном фоне сайта. */
+html { -webkit-text-size-adjust: 100%; color-scheme: dark; }
 
 body {
   background-color: var(--bg);

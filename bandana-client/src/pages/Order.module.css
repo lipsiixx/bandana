@@ -82,6 +82,40 @@
   resize: vertical;
 }
 
+/* Нативная кнопка input[type=file] по умолчанию светлая и не похожа ни на
+   одну другую кнопку сайта — стилизуем сам виджет выбора файла. */
+.fileInput {
+  width: 100%;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--text-2);
+  font-family: var(--font-text);
+  font-size: 0.9rem;
+}
+.fileInput::file-selector-button,
+.fileInput::-webkit-file-upload-button {
+  margin-right: var(--sp-3);
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-control);
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+.fileInput::file-selector-button:hover,
+.fileInput::-webkit-file-upload-button:hover {
+  background: var(--accent-hover);
+}
+.fileInput:disabled {
+  opacity: 0.6;
+}
+
 .hint {
   margin: var(--sp-2) 0 0;
   color: var(--text-3);
@@ -184,6 +218,22 @@
 .timecodeRow .input {
   flex: 1;
 }
+.timecodeMoment {
+  max-width: 120px;
+  flex: none;
+}
+@media (max-width: 480px) {
+  .timecodeRow {
+    flex-wrap: wrap;
+  }
+  .timecodeMoment {
+    max-width: 100px;
+  }
+  .timecodeRow .input:not(.timecodeMoment) {
+    flex: 1 1 100%;
+    order: 1;
+  }
+}
 
 .removeBtn {
   background: none;
@@ -262,6 +312,17 @@
 
 .backLink {
   color: var(--accent);
+  text-decoration: underline;
+}
+
+.cancelLink {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  color: var(--text-3);
+  font-size: 0.9rem;
+}
+.cancelLink:hover {
+  color: var(--text-2);
   text-decoration: underline;
 }
 

@@ -232,6 +232,21 @@ const Order = () => {
     setStep((s) => Math.max(0, s - 1));
   }
 
+  // В одностроковых полях Enter логично продолжает визард/добавляет
+  // элемент — иначе приходится каждый раз тянуться мышкой к кнопке.
+  function handleEnterAdvance(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleNext();
+    }
+  }
+  function handleEnterAddLink(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddLink();
+    }
+  }
+
   async function handleFilesSelected(fileList) {
     const files = Array.from(fileList || []);
     if (files.length === 0) return;
@@ -374,6 +389,9 @@ const Order = () => {
         <div className={pageStyles.inner}>
           <p className="bd-overline">{service.title}</p>
           <h1 className={style.title}>Оформление заказа</h1>
+          <Link to={`/services/${slug}`} className={style.cancelLink}>
+            ← Отмена, вернуться к услуге
+          </Link>
 
           <div className={style.stepsBar} aria-label={`Шаг ${step + 1} из ${STEPS.length}`}>
             {STEPS.map((s, i) => (
@@ -420,6 +438,7 @@ const Order = () => {
                 )}
                 <input
                   type="file"
+                  className={style.fileInput}
                   accept="audio/*"
                   multiple
                   disabled={fileBusy}
@@ -450,12 +469,14 @@ const Order = () => {
                     placeholder="https://…"
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
+                    onKeyDown={handleEnterAddLink}
                   />
                   <input
                     className={style.input}
                     placeholder="Комментарий (необязательно)"
                     value={linkNote}
                     onChange={(e) => setLinkNote(e.target.value)}
+                    onKeyDown={handleEnterAddLink}
                   />
                   <button type="button" className={style.addBtn} onClick={handleAddLink} disabled={busy}>
                     Добавить
@@ -475,6 +496,7 @@ const Order = () => {
                   placeholder="Например, 2:30 или «60–90 секунд»"
                   value={data.desired_duration}
                   onChange={(e) => setField("desired_duration", e.target.value)}
+                  onKeyDown={handleEnterAdvance}
                 />
               </div>
             )}
@@ -510,8 +532,7 @@ const Order = () => {
                 {data.timecodes.map((t, i) => (
                   <div key={i} className={style.timecodeRow}>
                     <input
-                      className={style.input}
-                      style={{ maxWidth: 120 }}
+                      className={`${style.input} ${style.timecodeMoment}`}
                       placeholder="0:45"
                       value={t.moment}
                       onChange={(e) => updateTimecodeRow(i, "moment", e.target.value)}
@@ -563,6 +584,7 @@ const Order = () => {
                   className={style.input}
                   value={data.contact_name}
                   onChange={(e) => setField("contact_name", e.target.value)}
+                  onKeyDown={handleEnterAdvance}
                 />
                 <label className={style.label} style={{ marginTop: "var(--sp-4)" }} htmlFor="contact_telegram">
                   Telegram
@@ -573,6 +595,7 @@ const Order = () => {
                   placeholder="@ник или t.me/…"
                   value={data.contact_telegram}
                   onChange={(e) => setField("contact_telegram", e.target.value)}
+                  onKeyDown={handleEnterAdvance}
                 />
                 <label className={style.label} style={{ marginTop: "var(--sp-4)" }} htmlFor="contact_phone">
                   Телефон
@@ -584,6 +607,7 @@ const Order = () => {
                   placeholder="+7 (___) ___-__-__"
                   value={data.contact_phone}
                   onChange={(e) => setField("contact_phone", formatPhone(e.target.value))}
+                  onKeyDown={handleEnterAdvance}
                 />
                 <label className={style.label} style={{ marginTop: "var(--sp-4)" }} htmlFor="contact_email">
                   Email
@@ -594,6 +618,7 @@ const Order = () => {
                   type="email"
                   value={data.contact_email}
                   onChange={(e) => setField("contact_email", e.target.value)}
+                  onKeyDown={handleEnterAdvance}
                 />
                 <p className={style.hint}>Укажите хотя бы один способ связи</p>
               </div>
